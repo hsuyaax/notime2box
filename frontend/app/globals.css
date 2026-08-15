@@ -79,3 +79,35 @@ body::after {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--line); }
 ::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+/* Keyboard focus. The brief says "no default focus rings" — that means *style*
+   them, not delete them: removing the indicator with no replacement locks out
+   anyone navigating by keyboard. :focus-visible keeps it invisible for mouse
+   users while remaining fully visible for keyboard/AT users. */
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+/* Skip link — first tab stop, lets keyboard users jump past the chapter nav. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--red);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* The custom cursor hides the native one. Anyone on a keyboard, a touch device,
+   or reduced-motion never gets that replacement, so give them the real cursor. */
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  body, a, button { cursor: auto; }
+}

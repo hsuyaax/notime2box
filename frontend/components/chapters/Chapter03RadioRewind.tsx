@@ -15,7 +15,7 @@ import { useReducedMotion } from "@/lib/smoothScroll";
 
 function RailCard({ c }: { c: ClipScore }) {
   return (
-    <div className="cut w-72 shrink-0 p-4 mr-4">
+    <div className="cut w-64 sm:w-72 shrink-0 p-4 mr-4 snap-start">
       <p className="font-mono text-[10px] text-dim">LAP {c.lap ?? "—"}</p>
       <p className="display text-sm mt-1" style={{ color: labelColor(c.label) }}>{c.label.toUpperCase()}</p>
       <div className="mt-3 h-10 flex items-end gap-0.5">
@@ -63,6 +63,8 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
   // short rails (few clips) from flashing past in one wheel tick.
   useEffect(() => {
     if (reduced || railGrid || !railRef.current || !railTrackRef.current) return;
+    // narrow/touch viewports get native horizontal swipe instead (see track classes)
+    if (window.matchMedia("(max-width: 767px), (pointer: coarse)").matches) return;
     const track = railTrackRef.current;
     const container = railRef.current;
     const getDistance = () => Math.max(track.scrollWidth - container.clientWidth, 0);
@@ -86,7 +88,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
   return (
     <section id="ch-rewind" className="relative">
       <div ref={pinRef} className="min-h-screen px-6 py-10 max-w-7xl mx-auto w-full flex flex-col justify-center">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
             <p className="font-mono text-xs text-dim tracking-widest">03 · RADIO REWIND</p>
             <h2 className="display text-3xl mt-1">
@@ -138,7 +140,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
       </div>
 
       {/* horizontal rail of clips below the pinned analysis screen */}
-      <div ref={railRef} className="relative py-16 border-t border-line">
+      <div ref={railRef} className="relative py-16 border-t border-line md:overflow-hidden">
         <div className="flex items-center justify-between px-6 max-w-7xl mx-auto mb-6">
           <p className="font-mono text-xs text-dim tracking-widest">ALL CLIPS · {clips.length}</p>
           <button onClick={() => setRailGrid(!railGrid)} className="font-mono text-xs text-dim hover:text-race-white underline underline-offset-4">
@@ -150,7 +152,9 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
             {clips.map((c) => <RailCard key={c.clip_id} c={c} />)}
           </div>
         ) : (
-          <div ref={railTrackRef} data-cursor="drag" className="flex px-6" style={{ willChange: "transform" }}>
+          <div ref={railTrackRef} data-cursor="drag"
+            className="flex px-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none"
+            style={{ willChange: "transform" }}>
             {clips.map((c) => <RailCard key={c.clip_id} c={c} />)}
           </div>
         )}

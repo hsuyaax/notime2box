@@ -17,6 +17,7 @@ export default function Home() {
 
   return (
     <main className="flex-1">
+      <a href="#ch-garage" className="skip-link">SKIP TO SESSION SELECT</a>
       <ChaptersNav />
       <RadioCue />
 

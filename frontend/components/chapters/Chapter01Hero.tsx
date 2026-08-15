@@ -140,7 +140,7 @@ export default function Chapter01Hero() {
           <p
             key={i}
             ref={(el) => { statementRefs.current[i] = el; }}
-            className="display text-5xl md:text-7xl text-center max-w-4xl absolute"
+            className="display text-4xl sm:text-5xl md:text-7xl text-center max-w-4xl absolute left-6 right-6 mx-auto"
           >
             {s}
           </p>
