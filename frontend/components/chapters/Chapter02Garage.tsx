@@ -82,7 +82,7 @@ export default function Chapter02Garage({ onSelect, activeKey }: {
 
       {loading && (
         <div className="cut mt-6 p-4 font-mono text-sm text-amber">
-          PULLING RADIO… {loading.done}/{loading.total || "?"}
+          PULLING RADIO… {loading.done}/{loading.total || "?"} CLIPS
         </div>
       )}
     </section>

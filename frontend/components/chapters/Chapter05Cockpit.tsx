@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import AlertCard from "@/components/AlertCard";
 import { API, Alert, labelColor } from "@/lib/api";
+import MaskedHeading from "@/components/MaskedHeading";
 
 type MicResult = {
   transcript: string; arousal: number; arousal_z: number; label: string;
@@ -103,9 +104,10 @@ export default function Chapter05Cockpit() {
   return (
     <section id="ch-cockpit" className="min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
       <p className="font-mono text-xs text-dim tracking-widest">05 · TRY THE COCKPIT</p>
-      <p className="text-lg text-race-white/70 mt-3 max-w-xl">
-        Read the card. First calm. Then like you just lost P6.
-      </p>
+      <MaskedHeading
+        as="p" className="text-lg text-race-white/70 mt-3 max-w-xl font-sans normal-case"
+        lines={["Read the card. First calm.", "Then like you just lost P6."]}
+      />
       <p className="font-mono text-sm text-dim mt-4 max-w-xl">
         {take === 1 ? "“Understood, box this lap, box box.”"
           : "“I told you the tyres were gone three laps ago! Why are we ALWAYS last on strategy?!”"}
