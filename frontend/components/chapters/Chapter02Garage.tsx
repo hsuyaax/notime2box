@@ -6,6 +6,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import { API, SessionMeta, getSessions } from "@/lib/api";
 import { MOCK_SESSIONS } from "@/lib/mockData";
 import MaskedHeading from "@/components/MaskedHeading";
+import YouTubeEmbed from "@/components/YouTubeEmbed";
 
 function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; active: boolean; onSelect: () => void }) {
   const mx = useMotionValue(0.5);
@@ -85,6 +86,11 @@ export default function Chapter02Garage({ onSelect, activeKey }: {
           PULLING RADIO… {loading.done}/{loading.total || "?"} CLIPS
         </div>
       )}
+
+      <div className="mt-16 max-w-xl">
+        <p className="font-mono text-[10px] text-dim tracking-widest mb-3">HEAR IT FOR YOURSELF</p>
+        <YouTubeEmbed id="qdQNfF1-2rw" title="Lando Norris — Greatest Team Radio Moments" />
+      </div>
     </section>
   );
 }
