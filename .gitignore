@@ -9,5 +9,5 @@ frontend/*.png
 demo-data/cache/
 .env
 .env.local
-my-project/
+.claude/
 .gstack/
