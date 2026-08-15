@@ -23,6 +23,7 @@ export type ClipScore = {
   label: "calm" | "stressed" | "tired" | "elevated" | "uncertain";
   confidence: number;
   signals_agree: boolean;
+  signal_spread?: number;
 };
 
 export type TracePoint = {

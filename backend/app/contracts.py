@@ -26,9 +26,10 @@ class ClipScore(BaseModel):
     cat_emotion: dict[str, float] = {}
     prosody: Prosody = Prosody()
     text_emotion: dict[str, float] = {}
-    label: str = "calm"                         # calm | stressed | tired | uncertain
+    label: str = "calm"           # calm | elevated | stressed | tired | uncertain
     confidence: float = 0.0
     signals_agree: bool = False
+    signal_spread: float = 0.0    # 0=all three channels agree, 1=maximal conflict
 
 
 class TracePoint(BaseModel):

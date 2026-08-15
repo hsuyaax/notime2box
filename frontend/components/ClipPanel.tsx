@@ -102,7 +102,9 @@ export default function ClipPanel({ clip, steiner }: { clip: ClipScore; steiner:
       </div>
       {!clip.signals_agree && (
         <p className="font-mono text-[10px] text-amber mt-2">
-          SIGNALS DISAGREE — LOW CONFIDENCE, NOT A FORCED LABEL
+          SIGNALS DISAGREE
+          {typeof clip.signal_spread === "number" && ` · SPREAD ${clip.signal_spread.toFixed(2)}`}
+          {" "}— LOW CONFIDENCE, NOT A FORCED LABEL
         </p>
       )}
     </motion.div>
