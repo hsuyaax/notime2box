@@ -56,23 +56,36 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
           alt=""
           aria-hidden
           onError={() => setHasPhoto(false)}
-          className="absolute -right-3 -bottom-2 h-28 w-auto object-contain object-bottom
-                     grayscale contrast-110 opacity-55 pointer-events-none select-none
-                     group-hover:grayscale-0 group-hover:opacity-90 transition-all duration-300"
+          // Source photos are ordinary headshots WITH backgrounds, so dropped in
+          // raw they read as pasted grey rectangles. The gradient mask dissolves
+          // the left and bottom edges into the card so they sit in the design
+          // instead of on top of it.
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to left, #000 45%, transparent 100%), linear-gradient(to top, #000 55%, transparent 100%)",
+            WebkitMaskComposite: "source-in",
+            maskImage:
+              "linear-gradient(to left, #000 45%, transparent 100%), linear-gradient(to top, #000 55%, transparent 100%)",
+            maskComposite: "intersect",
+          }}
+          className="absolute right-0 bottom-0 h-24 w-auto object-contain object-bottom
+                     grayscale contrast-125 brightness-90 opacity-45 pointer-events-none select-none
+                     group-hover:opacity-70 transition-opacity duration-300"
         />
       )}
 
-      <p className="font-mono text-[10px] text-dim tracking-widest relative">
+      <p className="font-mono text-[10px] text-dim tracking-widest relative z-10">
         {s.year} · {s.gp.toUpperCase()}
       </p>
-      <p className="display text-3xl mt-1.5 relative">{s.driver}</p>
+      <p className="display text-3xl mt-1.5 relative z-10">{s.driver}</p>
       {s.team && (
-        <p className="font-mono text-[9px] text-dim/80 tracking-[0.18em] mt-1 relative">
+        <p className="font-mono text-[9px] text-dim/80 tracking-[0.18em] mt-1 relative z-10">
           {s.team.toUpperCase()}
         </p>
       )}
 
-      <div className="flex items-baseline gap-2 mt-4 font-mono text-[10px] relative max-w-[62%]">
+      <div className="flex items-baseline gap-2 mt-4 font-mono text-[10px] relative z-10
+                      bg-panel/85 w-fit pr-2">
         <span className="text-race-white">{s.clip_count}</span>
         <span className="text-dim">CLIPS</span>
         {typeof usable === "number" && (
