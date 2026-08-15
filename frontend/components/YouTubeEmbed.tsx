@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 export default function YouTubeEmbed({ id, title }: { id: string; title: string }) {
   const [playing, setPlaying] = useState(false);
+  const [thumbFailed, setThumbFailed] = useState(false);
 
   if (playing) {
     return (
@@ -29,8 +30,9 @@ export default function YouTubeEmbed({ id, title }: { id: string; title: string 
       className="cut aspect-video relative overflow-hidden group w-full"
     >
       <img
-        src={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
-        alt={title}
+        src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}
+        alt=""
+        onError={() => setThumbFailed(true)}
         // full-colour stock breaks the two-colour discipline the rest of the site
         // holds to; desaturate to sit in the palette and lift on hover
         className="w-full h-full object-cover grayscale contrast-125 opacity-40
@@ -42,6 +44,11 @@ export default function YouTubeEmbed({ id, title }: { id: string; title: string 
         </span>
       </div>
       <p className="absolute bottom-3 left-4 right-4 font-mono text-xs text-race-white/90 text-left">{title}</p>
+      {thumbFailed && (
+        <span className="absolute top-3 left-4 font-mono text-[10px] text-amber">
+          PREVIEW UNAVAILABLE — OPENS ON YOUTUBE
+        </span>
+      )}
     </motion.button>
   );
 }

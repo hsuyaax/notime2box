@@ -3,45 +3,11 @@
 // public/hero-video.mp4 — see README "Adding hero video") layered under the canvas
 // waveform bleeding green→red, behind a masked-skew title reveal, then a pinned
 // sequence of three statements as the viewer scrolls.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/lib/smoothScroll";
 import MaskedHeading from "@/components/MaskedHeading";
-
-function BgVideo({ reduced, sectionRef }: { reduced: boolean; sectionRef: React.RefObject<HTMLElement | null> }) {
-  const [failed, setFailed] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (reduced || failed) return;
-    const v = videoRef.current;
-    const section = sectionRef.current;
-    if (!v || !section) return;
-
-    // starts a beat after the title reveal (not the instant the page loads), and
-    // pauses whenever the hero scrolls out of view — never plays behind Garage etc.
-    const startTimer = setTimeout(() => v.play().catch(() => {}), 900);
-    const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) v.play().catch(() => {}); else v.pause(); },
-      { threshold: 0.15 }
-    );
-    io.observe(section);
-    return () => { clearTimeout(startTimer); io.disconnect(); };
-  }, [reduced, failed, sectionRef]);
-
-  if (reduced || failed) return null; // reduced-motion: no autoplay video, canvas only
-  return (
-    <video
-      ref={videoRef}
-      className="absolute inset-0 w-full h-full object-cover opacity-65"
-      muted loop playsInline preload="auto"
-      onError={() => setFailed(true)}
-    >
-      <source src="/hero-video.mp4" type="video/mp4" />
-    </video>
-  );
-}
 
 function WaveformCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -117,8 +83,6 @@ export default function Chapter01Hero() {
   return (
     <div ref={rootRef} id="ch-problem">
       <section ref={heroSectionRef} className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
-        <BgVideo reduced={reduced} sectionRef={heroSectionRef} />
-        <div className="absolute inset-0 bg-bg/60" />{/* dark scrim — keeps text legible over any footage */}
         <WaveformCanvas />
         <div className="relative z-10">
           <p className="font-mono text-xs text-dim tracking-[0.3em]">SILENT CO-DRIVER · TELEMETRY FOR THE HUMAN</p>

@@ -222,7 +222,7 @@ export default function Chapter04Debrief({ session }: { session: SessionMeta | n
 
           <div className="mt-8">
             <p className="font-mono text-[10px] text-dim tracking-widest mb-3">REAL RADIO, FOR REAL</p>
-            <YouTubeEmbed id="GXB1KF72phY" title="Esteban Ocon — Full Race Team Radio, 2025 Emilia-Romagna GP" />
+            <YouTubeEmbed id="Z4OpDCF8qME" title="25 Years of Legendary F1 Team Radio" />
           </div>
         </div>
       </div>

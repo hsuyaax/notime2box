@@ -126,13 +126,23 @@ export default function Chapter05Cockpit() {
 
       {/* Two-take state is the whole demo: take 1 captures YOUR baseline, take 2 is
           scored against it. Showing it removes the "what am I doing now?" beat. */}
+      {/* Clickable, not just an indicator. Take 2 used to unlock only after a
+          successful baseline capture, so any mic or backend hiccup left you stranded
+          on take 1 with no way forward — bad anywhere, worse live in front of judges. */}
       <div className="flex items-center gap-3 mt-8 font-mono text-[10px] tracking-[0.25em]">
         {([1, 2] as const).map((t) => (
-          <div key={t} className={`cut px-3 py-1.5 ${take === t ? "text-race-white" : "text-dim/50"}`}
-            style={{ borderColor: take === t ? "var(--red)" : "var(--line)" }}>
+          <button
+            key={t}
+            onClick={() => { setTake(t); setResult(null); setErr(""); }}
+            data-cursor="select"
+            aria-pressed={take === t}
+            className={`cut px-3 py-1.5 transition-colors ${
+              take === t ? "text-race-white" : "text-dim/60 hover:text-race-white"}`}
+            style={{ borderColor: take === t ? "var(--red)" : "var(--line)" }}
+          >
             TAKE {t} · {t === 1 ? "CALM" : "LOSE IT"}
             {take > t && <span className="text-race-green ml-2">✓</span>}
-          </div>
+          </button>
         ))}
       </div>
 
