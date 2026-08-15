@@ -9,6 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import RaceCharts from "@/components/RaceCharts";
 import ClipPanel from "@/components/ClipPanel";
 import AlertCard from "@/components/AlertCard";
+import SessionVerdict from "@/components/SessionVerdict";
 import { ClipScore, SessionMeta, Trace, getClips, getTrace, labelColor } from "@/lib/api";
 import { MOCK_CLIPS, MOCK_TRACE_RESULT } from "@/lib/mockData";
 import { useReducedMotion } from "@/lib/smoothScroll";
@@ -135,6 +136,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
                 <AlertCard key={`${a.type}${a.t_start}`} alert={a} />
               ))}
             </AnimatePresence>
+            <SessionVerdict clips={clips} trace={trace.trace} alerts={trace.alerts} />
           </div>
         </div>
       </div>
