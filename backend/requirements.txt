@@ -9,6 +9,7 @@ python-multipart
 numpy
 pandas
 requests
+python-dotenv
 
 # data (online prefetch only — not needed at runtime once demo-data/ is built)
 fastf1

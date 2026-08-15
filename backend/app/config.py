@@ -2,7 +2,10 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 ROOT = Path(__file__).resolve().parents[2]  # repo root
+load_dotenv(ROOT / ".env")  # HF_TOKEN etc — huggingface_hub reads HF_TOKEN automatically
 DATA_DIR = Path(os.getenv("DATA_DIR", ROOT / "demo-data"))
 CACHE_DIR = Path(os.getenv("CACHE_DIR", DATA_DIR / "cache"))
 AUDIO_DIR = Path(os.getenv("AUDIO_DIR", DATA_DIR / "audio"))
