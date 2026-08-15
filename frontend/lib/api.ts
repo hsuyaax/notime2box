@@ -53,6 +53,8 @@ export type LapPoint = {
 };
 
 export type SessionMeta = {
+  spark?: number[];
+  driver_clips?: number;
   key: string;
   year: number;
   gp: string;

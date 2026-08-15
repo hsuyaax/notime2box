@@ -31,7 +31,17 @@ def _parse_key(key: str) -> tuple[int, str, str, str]:
 
 @router.get("/sessions")
 def sessions():
-    return store.get_sessions()
+    """Session list, each with a real arousal sparkline from the DRIVER's clips —
+    the ledger renders these directly, so no placeholder curves anywhere."""
+    out = []
+    for m in store.get_sessions():
+        cl = speaker.driver_clips(store.get_clips(m["key"]))
+        step = max(1, len(cl) // 16)
+        m = {**m,
+             "spark": [round(c["arousal_z"], 2) for c in cl[::step]][:16],
+             "driver_clips": len(cl)}
+        out.append(m)
+    return out
 
 
 @router.get("/audio/{clip_id}.mp3")

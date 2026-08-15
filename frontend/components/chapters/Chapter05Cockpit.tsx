@@ -123,23 +123,61 @@ export default function Chapter05Cockpit() {
         as="p" className="text-lg text-race-white/70 mt-3 max-w-xl font-sans normal-case"
         lines={["Read the card. First calm.", "Then like you just lost P6."]}
       />
-      <p className="font-mono text-sm text-dim mt-4 max-w-xl">
-        {take === 1 ? "“Understood, box this lap, box box.”"
-          : "“I told you the tyres were gone three laps ago! Why are we ALWAYS last on strategy?!”"}
-      </p>
 
-      <motion.button
-        onClick={phase === "rec" ? () => recRef.current?.stop() : record}
-        disabled={phase === "busy"}
-        data-cursor="play"
-        whileTap={{ scale: 0.95 }}
-        animate={phase === "rec" ? { scale: [1, 1.05, 1] } : {}}
-        transition={phase === "rec" ? { repeat: Infinity, duration: 1 } : {}}
-        className="mt-10 w-44 h-44 rounded-full border-2 flex items-center justify-center display text-xl"
-        style={{ borderColor: phase === "rec" ? "var(--red)" : "var(--line)" }}
-      >
-        {phase === "rec" ? "STOP" : phase === "busy" ? "…" : "REC"}
-      </motion.button>
+      {/* Two-take state is the whole demo: take 1 captures YOUR baseline, take 2 is
+          scored against it. Showing it removes the "what am I doing now?" beat. */}
+      <div className="flex items-center gap-3 mt-8 font-mono text-[10px] tracking-[0.25em]">
+        {([1, 2] as const).map((t) => (
+          <div key={t} className={`cut px-3 py-1.5 ${take === t ? "text-race-white" : "text-dim/50"}`}
+            style={{ borderColor: take === t ? "var(--red)" : "var(--line)" }}>
+            TAKE {t} · {t === 1 ? "CALM" : "LOSE IT"}
+            {take > t && <span className="text-race-green ml-2">✓</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* The judge literally reads this line aloud — treat it as a prop card. */}
+      {/* label lives INSIDE the panel: .cut is a clip-path, so anything positioned
+          outside the panel's box gets clipped away */}
+      <div className="cut mt-6 px-6 pt-4 pb-5 max-w-xl">
+        <p className="font-mono text-[9px] text-dim tracking-[0.3em] mb-3">READ THIS ALOUD</p>
+        <p className="text-lg md:text-xl leading-snug text-race-white">
+          {take === 1 ? "“Understood, box this lap, box box.”"
+            : "“I told you the tyres were gone three laps ago! Why are we ALWAYS last on strategy?!”"}
+        </p>
+      </div>
+
+      <div className="relative mt-12 flex items-center justify-center">
+        {/* concentric rings pulse outward while recording — the only moving thing on
+            an otherwise near-empty screen, so it reads as "live" instantly */}
+        {phase === "rec" && [0, 1, 2].map((i) => (
+          <motion.span key={i}
+            className="absolute rounded-full border border-race-red"
+            initial={{ width: 176, height: 176, opacity: 0.5 }}
+            animate={{ width: 320, height: 320, opacity: 0 }}
+            transition={{ duration: 2, repeat: Infinity, delay: i * 0.65, ease: "easeOut" }}
+          />
+        ))}
+        <motion.button
+          onClick={phase === "rec" ? () => recRef.current?.stop() : record}
+          disabled={phase === "busy"}
+          data-cursor="play"
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.03 }}
+          animate={phase === "rec" ? { scale: [1, 1.04, 1] } : {}}
+          transition={phase === "rec" ? { repeat: Infinity, duration: 1.1 } : { duration: 0.2 }}
+          className="relative w-44 h-44 rounded-full border-2 flex flex-col items-center justify-center display text-xl"
+          style={{
+            borderColor: phase === "rec" ? "var(--red)" : "var(--line)",
+            background: phase === "rec" ? "rgba(230,0,43,0.08)" : "transparent",
+          }}
+        >
+          <span>{phase === "rec" ? "STOP" : phase === "busy" ? "…" : "REC"}</span>
+          <span className="font-mono text-[9px] text-dim tracking-[0.2em] mt-2 not-italic">
+            {phase === "rec" ? "5s MAX" : phase === "busy" ? "SCORING" : "TAP TO SPEAK"}
+          </span>
+        </motion.button>
+      </div>
       <LiveWaveform stream={stream} active={phase === "rec"} />
 
       <input
