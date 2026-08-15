@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo_Black, Inter, Geist_Mono } from "next/font/google";
 import SmoothScroll from "@/lib/smoothScroll";
 import Cursor from "@/components/Cursor";
+import AmbientField from "@/components/AmbientField";
 import "./globals.css";
 
 const archivo = Archivo_Black({ weight: "400", variable: "--font-archivo", subsets: ["latin"] });
@@ -21,8 +22,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-bg">
         <SmoothScroll>
+          <AmbientField />
           <Cursor />
-          {children}
+          {/* content sits above the ambient ground */}
+          <div className="relative z-10">{children}</div>
         </SmoothScroll>
       </body>
     </html>
