@@ -8,9 +8,15 @@ import { MOCK_SESSIONS } from "@/lib/mockData";
 import MaskedHeading from "@/components/MaskedHeading";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 
+/** Session card. Sized for a GRID, not a single flex row: the row layout was built
+ *  for three sessions and there are now fifteen, which squeezed every card to ~70px
+ *  and truncated driver names to a single letter. Roughly half the previous height,
+ *  full width for the text, and it shows the driver/engineer split that decides how
+ *  much of the session is actually usable. */
 function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; active: boolean; onSelect: () => void }) {
   const mx = useMotionValue(0.5);
-  const numX = useTransform(mx, [0, 1], [-8, 8]);
+  const numX = useTransform(mx, [0, 1], [-6, 6]);
+  const usable = s.driver_clips;
 
   return (
     <motion.button
@@ -20,25 +26,41 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
         mx.set((e.clientX - r.left) / r.width);
       }}
       data-cursor="select"
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10%" }}
-      transition={{ delay: i * 0.08, duration: 0.35, ease: "easeOut" }}
-      whileHover={{ scale: 1.02 }}
-      className={`cut relative overflow-hidden text-left flex-1 min-h-[420px] p-8 group ${active ? "ring-1 ring-race-red" : ""}`}
+      viewport={{ once: true, margin: "-6%" }}
+      transition={{ delay: Math.min(i, 8) * 0.04, duration: 0.3, ease: "easeOut" }}
+      whileHover={{ y: -3 }}
+      className={`cut relative overflow-hidden text-left p-5 pb-6 group
+                  ${active ? "ring-1 ring-race-red" : ""}`}
     >
       <motion.span
         style={{ x: numX }}
-        className="num-speed text-[9rem] leading-none text-race-white/10 absolute right-2 top-2 group-hover:text-race-red/25 transition-colors"
+        aria-hidden
+        className="num-speed text-[5.5rem] leading-none text-race-white/[0.07] absolute -right-1 -top-3
+                   group-hover:text-race-red/20 transition-colors select-none"
       >
         {s.driver_number ?? "—"}
       </motion.span>
-      <p className="font-mono text-xs text-dim">{s.year} · {s.gp.toUpperCase()} · {s.session}</p>
-      <p className="display text-4xl mt-2">{s.driver}</p>
-      <p className="font-mono text-xs text-dim mt-6 absolute bottom-8 left-8">
-        {s.ready ? `${s.clip_count} RADIO CLIPS · READY` : "PULL RADIO →"}
+
+      <p className="font-mono text-[10px] text-dim tracking-widest relative">
+        {s.year} · {s.gp.toUpperCase()}
       </p>
-      <span className="block h-0.5 bg-race-red w-0 group-hover:w-[calc(100%-4rem)] transition-all duration-300 absolute bottom-6 left-8" />
+      <p className="display text-3xl mt-1.5 relative">{s.driver}</p>
+
+      <div className="flex items-baseline gap-2 mt-4 font-mono text-[10px] relative">
+        <span className="text-race-white">{s.clip_count}</span>
+        <span className="text-dim">CLIPS</span>
+        {typeof usable === "number" && (
+          <>
+            <span className="text-dim/40">·</span>
+            <span className={usable > 0 ? "text-race-green" : "text-amber"}>{usable}</span>
+            <span className="text-dim">DRIVER</span>
+          </>
+        )}
+      </div>
+
+      <span className="block h-0.5 bg-race-red w-0 group-hover:w-full transition-all duration-300 mt-4" />
     </motion.button>
   );
 }
@@ -161,7 +183,7 @@ export default function Chapter02Garage({ onSelect, activeKey }: {
       <MaskedHeading as="h2" className="display text-4xl mt-2" lines={["SELECT A SESSION"]} />
       {err && <p className="mt-3 font-mono text-xs text-amber">{err}</p>}
 
-      <div className="flex flex-col md:flex-row gap-4 mt-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-10">
         {sessions.map((s, i) => (
           <DriverCard key={s.key} s={s} i={i} active={activeKey === s.key} onSelect={() => open(s)} />
         ))}
