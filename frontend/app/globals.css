@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0a0a;
+  --panel: #111214;
+  --line: #26282b;
+  --red: #e6002b;
+  --white: #f4f4f4;
+  --amber: #ffb800;
+  --green: #00c853;
+  --dim: #8a8f98;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-race-red: var(--red);
+  --color-race-white: var(--white);
+  --color-amber: var(--amber);
+  --color-race-green: var(--green);
+  --color-dim: var(--dim);
+  --font-display: var(--font-archivo);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* 3% noise overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  z-index: 50;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* cut corners — never border-radius */
+.cut {
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.display {
+  font-family: var(--font-archivo), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.num-speed {
+  font-family: var(--font-archivo), sans-serif;
+  font-style: italic;
+  transform: skewX(-5deg);
+  display: inline-block;
+}
+
+.telemetry-rule {
+  border-top: 1px solid var(--line);
+}
+
+@media (pointer: fine) {
+  body { cursor: none; }
+  a, button { cursor: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line); }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }

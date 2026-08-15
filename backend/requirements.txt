@@ -1,0 +1,18 @@
+# Light/default — what runs in production (OFFLINE=1, serving the precomputed
+# demo-data bundle). No torch/ML deps, so this installs fast and cheap on any
+# free-tier host. Try-the-Cockpit gracefully degrades to signal heuristics on
+# this profile — see requirements-ml.txt for the full live-inference build.
+fastapi
+uvicorn[standard]
+sse-starlette
+python-multipart
+numpy
+pandas
+requests
+
+# data (online prefetch only — not needed at runtime once demo-data/ is built)
+fastf1
+
+# dev
+pytest
+httpx

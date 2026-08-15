@@ -1,0 +1,12 @@
+.venv/
+.venv312/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.next/
+frontend/*.png
+demo-data/cache/
+.env
+.env.local
+my-project/

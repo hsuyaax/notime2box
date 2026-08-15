@@ -1,0 +1,16 @@
+# Optional heavy ML stack — only needed for live model inference (prefetch_demo.py,
+# or a production deployment where Try-the-Cockpit must run the real 5-model
+# pipeline instead of degrading to heuristics). Needs Python <=3.12: torch/
+# faster-whisper/funasr don't support 3.13+ yet.
+#
+#   py -3.12 -m venv .venv312
+#   .venv312\Scripts\pip install torch --index-url https://download.pytorch.org/whl/cu128   # or cpu build: plain `pip install torch`
+#   .venv312\Scripts\pip install -r backend\requirements.txt -r backend\requirements-ml.txt
+
+-r requirements.txt
+faster-whisper
+funasr
+transformers
+accelerate
+soundfile
+torchaudio
