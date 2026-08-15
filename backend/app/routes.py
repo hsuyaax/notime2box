@@ -136,8 +136,14 @@ async def _score_upload(file: UploadFile, baseline: int, baseline_key: str) -> d
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, dir=config.CACHE_DIR) as f:
         f.write(await file.read())
         tmp = Path(f.name)
-    s = clipscore.score_clip(tmp, f"{baseline_key}_{tmp.stem}", 0.0)
-    tmp.unlink(missing_ok=True)
+    try:
+        s = clipscore.score_clip(tmp, f"{baseline_key}_{tmp.stem}", 0.0)
+    except Exception:
+        # boundary validation: not every upload is a valid audio file — reject
+        # cleanly instead of a raw 500 leaking ffmpeg's internals
+        raise HTTPException(400, "couldn't read that as audio — try a wav/mp3/webm clip")
+    finally:
+        tmp.unlink(missing_ok=True)
 
     if baseline:
         store.save_baseline(baseline_key, {"a_mean": s["arousal"], "a_sd": 0.08,

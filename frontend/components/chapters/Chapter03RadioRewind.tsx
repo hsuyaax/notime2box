@@ -38,6 +38,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
   const [cursor, setCursor] = useState(0);
   const [sel, setSel] = useState<ClipScore | null>(MOCK_CLIPS[0]);
   const [railGrid, setRailGrid] = useState(false);
+  const [steiner, setSteiner] = useState(false);
   const reduced = useReducedMotion();
   const pinRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
@@ -92,13 +93,22 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
               {session ? session.driver : "DEMO"} <span className="text-race-red">{session ? `${session.year} ${session.gp.toUpperCase()}` : "SESSION"}</span>
             </h2>
           </div>
-          <div className="cut flex" data-cursor="drag">
-            {(["naive", "bayes"] as const).map((e) => (
-              <button key={e} onClick={() => setEngine(e)}
-                className={`px-3 py-1.5 font-mono text-xs ${engine === e ? "bg-race-red text-race-white" : "text-dim"}`}>
-                {e === "bayes" ? "BAYESIAN" : "NAIVE"}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSteiner(!steiner)}
+              title="settings"
+              className={`cut px-2 py-1.5 font-mono text-[10px] ${steiner ? "text-amber" : "text-dim"}`}
+            >
+              GS
+            </button>
+            <div className="cut flex" data-cursor="drag">
+              {(["naive", "bayes"] as const).map((e) => (
+                <button key={e} onClick={() => setEngine(e)}
+                  className={`px-3 py-1.5 font-mono text-xs ${engine === e ? "bg-race-red text-race-white" : "text-dim"}`}>
+                  {e === "bayes" ? "BAYESIAN" : "NAIVE"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -114,7 +124,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-start">
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {sel && <ClipPanel clip={sel} steiner={false} />}
+              {sel && <ClipPanel clip={sel} steiner={steiner} />}
             </AnimatePresence>
           </div>
           <div className="flex flex-col gap-3 min-h-[3rem]">
