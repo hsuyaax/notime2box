@@ -7,13 +7,11 @@ import { useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SessionMeta, getSessions, getWrapped } from "@/lib/api";
-import { MOCK_SESSIONS, MOCK_WRAPPED } from "@/lib/mockData";
+import { SessionMeta, getSessions, getWrapped, EMPTY_WRAPPED, Wrapped } from "@/lib/api";
 import { useReducedMotion } from "@/lib/smoothScroll";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import MaskedHeading from "@/components/MaskedHeading";
 
-type Wrapped = typeof MOCK_WRAPPED;
 
 function CountUp({ to, decimals = 0 }: { to: number; decimals?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -76,8 +74,8 @@ function Sparkline({ values, wide = false }: { values?: number[]; wide?: boolean
 }
 
 export default function Chapter04Debrief({ session }: { session: SessionMeta | null }) {
-  const [w, setW] = useState<Wrapped>(MOCK_WRAPPED);
-  const [sessions, setSessions] = useState<SessionMeta[]>(MOCK_SESSIONS);
+  const [w, setW] = useState<Wrapped>(EMPTY_WRAPPED);
+  const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
 
@@ -86,7 +84,7 @@ export default function Chapter04Debrief({ session }: { session: SessionMeta | n
   }, []);
   useEffect(() => {
     if (!session) return;
-    getWrapped(session.key, session.driver).then((d) => setW({ ...MOCK_WRAPPED, ...d })).catch(() => {});
+    getWrapped(session.key, session.driver).then(setW).catch(() => setW(EMPTY_WRAPPED));
   }, [session]);
 
   const download = async () => {
@@ -117,9 +115,9 @@ export default function Chapter04Debrief({ session }: { session: SessionMeta | n
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-10 mt-14">
         <Stat value={w.clip_count} label="RADIO CALLS" sub="driver + engineer, this session" />
-        <Stat value={w.peak_stress_lap ?? 41} label="PEAK STRESS" prefix="LAP" accent
+        <Stat value={w.peak_stress_lap ?? 0} label="PEAK STRESS" prefix="LAP" accent
               sub="highest arousal vs own baseline" />
-        <Stat value={w.composure ?? 71} label="COMPOSURE" sub="100 − volatility of own z-scores" />
+        <Stat value={w.composure} label="COMPOSURE" sub="100 − volatility of own z-scores" />
       </div>
 
       <div className="grid lg:grid-cols-5 gap-6 mt-20 items-start">

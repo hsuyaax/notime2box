@@ -1,4 +1,4 @@
-"""Engine unit tests — these are also a Q&A exhibit (FINAL-SOLUTION C2/C3)."""
+"""Engine unit tests: Kalman convergence, BOCPD changepoint recovery, alert gating."""
 import numpy as np
 import pytest
 

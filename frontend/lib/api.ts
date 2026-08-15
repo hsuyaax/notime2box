@@ -1,4 +1,4 @@
-// Typed client for the frozen contracts (FINAL-SOLUTION B2/B3).
+// Typed client mirroring backend/app/contracts.py. Keep the two in step.
 export const API = process.env.NEXT_PUBLIC_API ?? "http://localhost:8000";
 
 export type Prosody = { rate_sps: number; pause_ratio: number; f0_var: number };
@@ -107,11 +107,35 @@ export const getRaces = (year: number): Promise<RaceOption[]> =>
   fetch(`${API}/api/catalog/${year}`).then(j);
 export const getDrivers = (year: number, sessionKey: number): Promise<DriverOption[]> =>
   fetch(`${API}/api/catalog/${year}/drivers?session_key=${sessionKey}`).then(j);
+export const EMPTY_TRACE: Trace = { engine: "bayes", trace: [], alerts: [], laps: [] };
+
 export const getClips = (key: string): Promise<ClipScore[]> =>
   fetch(`${API}/api/sessions/${key}/clips`).then(j);
 export const getTrace = (key: string, engine: string): Promise<Trace> =>
   fetch(`${API}/api/sessions/${key}/trace?engine=${engine}`).then(j);
-export const getWrapped = (key: string, drv: string) =>
+export type Wrapped = {
+  driver: string;
+  session: SessionMeta | null;
+  clip_count: number;
+  pct_calm: number;
+  pct_stressed: number;
+  pct_tired: number;
+  spiciest_clip: { transcript: string; arousal_z: number; lap: number | null } | null;
+  avg_confidence: number;
+  peak_stress_lap: number | null;
+  composure: number;
+};
+
+// Zeroed, not seeded. The debrief renders whatever is in this object, so a
+// placeholder with plausible-looking values would be indistinguishable from a
+// real result the moment the backend hiccups.
+export const EMPTY_WRAPPED: Wrapped = {
+  driver: "", session: null, clip_count: 0,
+  pct_calm: 0, pct_stressed: 0, pct_tired: 0,
+  spiciest_clip: null, avg_confidence: 0, peak_stress_lap: null, composure: 0,
+};
+
+export const getWrapped = (key: string, drv: string): Promise<Wrapped> =>
   fetch(`${API}/api/sessions/${key}/wrapped/${drv}`).then(j);
 
 export const labelColor = (label: string) =>

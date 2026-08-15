@@ -1,4 +1,5 @@
-"""Frozen data contracts (FINAL-SOLUTION Part B2). Front & back build against these."""
+"""Frozen data contracts. The frontend and backend are both built against these,
+so a change here is a breaking change for both."""
 from pydantic import BaseModel
 from typing import Optional
 

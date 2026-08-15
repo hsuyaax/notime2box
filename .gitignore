@@ -13,3 +13,6 @@ demo-data/cache/
 .gstack/
 *.mp4
 videoplayback.mp4
+
+# personal demo runbook, not part of the deliverable
+DEMO-SCRIPT.md

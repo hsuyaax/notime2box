@@ -1,4 +1,4 @@
-"""Central config. Everything overridable by env var; defaults per FINAL-SOLUTION Part B3."""
+"""Central config. Every value is overridable by environment variable."""
 import os
 from pathlib import Path
 

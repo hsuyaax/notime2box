@@ -10,8 +10,7 @@ import RaceCharts from "@/components/RaceCharts";
 import ClipPanel from "@/components/ClipPanel";
 import AlertCard from "@/components/AlertCard";
 import SessionVerdict from "@/components/SessionVerdict";
-import { ClipScore, SessionMeta, Trace, fmtT, getClips, getTrace, labelColor } from "@/lib/api";
-import { MOCK_CLIPS, MOCK_TRACE_RESULT } from "@/lib/mockData";
+import { ClipScore, SessionMeta, Trace, fmtT, getClips, getTrace, labelColor, EMPTY_TRACE } from "@/lib/api";
 import { useReducedMotion } from "@/lib/smoothScroll";
 
 /** Rail card. Wider and shorter than before so a full radio call is actually
@@ -84,11 +83,11 @@ function RailCard({ c, active, onSelect }: {
 }
 
 export default function Chapter03RadioRewind({ session }: { session: SessionMeta | null }) {
-  const [clips, setClips] = useState<ClipScore[]>(MOCK_CLIPS);
-  const [trace, setTrace] = useState<Trace>(MOCK_TRACE_RESULT);
+  const [clips, setClips] = useState<ClipScore[]>([]);
+  const [trace, setTrace] = useState<Trace>(EMPTY_TRACE);
   const [engine, setEngine] = useState<"naive" | "bayes">("bayes");
   const [cursor, setCursor] = useState(0);
-  const [sel, setSel] = useState<ClipScore | null>(MOCK_CLIPS[0]);
+  const [sel, setSel] = useState<ClipScore | null>(null);
   const [railGrid, setRailGrid] = useState(false);
   const [steiner, setSteiner] = useState(false);
   const reduced = useReducedMotion();
@@ -98,8 +97,10 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
 
   useEffect(() => {
     if (!session) return;
-    getClips(session.key).then(setClips).catch(() => setClips(MOCK_CLIPS));
-    getTrace(session.key, engine).then(setTrace).catch(() => setTrace(MOCK_TRACE_RESULT));
+    // No synthetic fallback: if the backend is unreachable the charts stay empty.
+    // Substituting invented clips here would be indistinguishable from a real session.
+    getClips(session.key).then(setClips).catch(() => setClips([]));
+    getTrace(session.key, engine).then(setTrace).catch(() => setTrace(EMPTY_TRACE));
   }, [session, engine]);
 
   const visibleAlerts = trace.alerts.filter((a) => a.t_start <= cursor);

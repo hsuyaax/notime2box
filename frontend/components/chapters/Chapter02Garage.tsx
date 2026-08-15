@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { API, DriverOption, RaceOption, SessionMeta, getDrivers, getRaces, getSessions } from "@/lib/api";
-import { MOCK_SESSIONS } from "@/lib/mockData";
 import MaskedHeading from "@/components/MaskedHeading";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 
@@ -206,12 +205,12 @@ function AnyRacePicker({ onLoad }: { onLoad: (s: SessionMeta) => void }) {
 export default function Chapter02Garage({ onSelect, activeKey }: {
   onSelect: (s: SessionMeta) => void; activeKey?: string;
 }) {
-  const [sessions, setSessions] = useState<SessionMeta[]>(MOCK_SESSIONS);
+  const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [loading, setLoading] = useState<{ key: string; done: number; total: number } | null>(null);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    getSessions().then((s) => s.length && setSessions(s)).catch(() => setErr("backend offline — showing demo sessions"));
+    getSessions().then((s) => s.length && setSessions(s)).catch(() => setErr("backend offline — no sessions to show"));
   }, []);
 
   const open = async (s: SessionMeta) => {
