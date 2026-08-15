@@ -4,7 +4,7 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import WaveSurfer from "wavesurfer.js";
-import { ClipScore, fmtT, labelColor } from "@/lib/api";
+import { ClipScore, audioSrc, fmtT, labelColor } from "@/lib/api";
 
 function Bar({ name, v }: { name: string; v: number }) {
   return (
@@ -32,7 +32,7 @@ export default function ClipPanel({ clip, steiner }: { clip: ClipScore; steiner:
         waveColor: labelColor(clip.label),
         progressColor: "var(--white)",
         cursorColor: "var(--white)",
-        url: clip.audio_url,
+        url: audioSrc(clip.audio_url),
         barWidth: 2,
         barGap: 1,
       });

@@ -2,10 +2,12 @@
 import asyncio
 import datetime as dt
 import json
+import re
 import tempfile
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
 
 from . import config, store
@@ -30,6 +32,24 @@ def _parse_key(key: str) -> tuple[int, str, str, str]:
 @router.get("/sessions")
 def sessions():
     return store.get_sessions()
+
+
+@router.get("/audio/{clip_id}.mp3")
+def clip_audio(clip_id: str):
+    """Serve radio audio from our own origin.
+
+    The upstream OpenF1 `recording_url` points at livetiming.formula1.com, which
+    sends no Access-Control-Allow-Origin — so the browser blocks it and the
+    emotion-tinted waveform silently never renders. We already hold every clip on
+    disk (that's what makes OFFLINE=1 work), so serve it locally: fixes CORS and
+    removes a network dependency from the demo at the same time.
+    """
+    if not re.fullmatch(r"[A-Za-z0-9_\-]+", clip_id):   # no traversal via clip_id
+        raise HTTPException(400, "bad clip id")
+    path = config.AUDIO_DIR / f"{clip_id}.mp3"
+    if not path.is_file():
+        raise HTTPException(404, "clip audio not in bundle")
+    return FileResponse(path, media_type="audio/mpeg")
 
 
 @router.get("/catalog/{year}")
@@ -64,8 +84,10 @@ def _process_session(key: str) -> None:
         if of1:
             num = openf1.driver_number(of1["session_key"], driver)
             clips_meta = openf1.team_radio(of1["session_key"], num) if num else []
-            t0 = dt.datetime.fromisoformat(of1["date_start"])
         prog["total"] = len(clips_meta)
+        # OpenF1 timestamps are unreliable per-session; pick the coherent source
+        times, time_src = openf1.clip_times(of1, clips_meta) if clips_meta else ([], "none")
+        print(f"[load] {key}: timestamps from {time_src}")
 
         laps = fastf1_client.get_lap_points(key, year, gp, session, driver)
 
@@ -79,11 +101,12 @@ def _process_session(key: str) -> None:
         scores = []
         for i, cm in enumerate(clips_meta):
             clip_id = f"{key}_{i:03d}"
-            t_s = (dt.datetime.fromisoformat(cm["date"]) - t0).total_seconds()
+            t_s = times[i]
             try:
                 path = openf1.download_clip(cm["recording_url"], clip_id)
                 s = clipscore.score_clip(path, clip_id, round(t_s, 1),
-                                         lap=lap_at(t_s), audio_url=cm["recording_url"])
+                                         lap=lap_at(t_s),
+                                         audio_url=f"/api/audio/{clip_id}.mp3")
                 scores.append(s)
             except Exception as e:
                 print(f"[load] clip {clip_id} failed: {e}")

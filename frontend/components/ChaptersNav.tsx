@@ -9,8 +9,9 @@ const CHAPTERS = [
   { n: "01", id: "ch-problem", label: "THE PROBLEM" },
   { n: "02", id: "ch-garage", label: "THE GARAGE" },
   { n: "03", id: "ch-rewind", label: "RADIO REWIND" },
-  { n: "04", id: "ch-debrief", label: "THE DEBRIEF" },
-  { n: "05", id: "ch-cockpit", label: "TRY THE COCKPIT" },
+  { n: "04", id: "ch-hardpart", label: "THE HARD PART" },
+  { n: "05", id: "ch-debrief", label: "THE DEBRIEF" },
+  { n: "06", id: "ch-cockpit", label: "TRY THE COCKPIT" },
 ];
 
 export default function ChaptersNav() {

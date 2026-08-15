@@ -8,8 +8,15 @@ from ..contracts import ClipScore, Prosody
 from . import audio, asr, emotion, prosody, text_emotion
 
 
+# Bump whenever a model or its wiring changes, so cached scores from an older
+# pipeline can never be served silently. v2: audeering loaded via its real custom
+# regression head (v1 cached a random-head near-constant arousal — see
+# pipeline/audeering_model.py).
+PIPELINE_VERSION = "v2"
+
+
 def score_clip(path: Path, clip_id: str, t_session_s: float, lap=None, audio_url="") -> dict:
-    h = store.file_hash(path)
+    h = f"{PIPELINE_VERSION}_{store.file_hash(path)}"
     cached = store.cache_get("clipscore", h)
     if cached:
         cached.update({"clip_id": clip_id, "t_session_s": t_session_s,

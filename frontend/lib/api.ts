@@ -99,6 +99,10 @@ export const labelColor = (label: string) =>
   : label === "uncertain" ? "var(--dim)"
   : "var(--green)";
 
+/** Clip audio is served from our own backend (the F1 CDN sends no CORS header),
+ *  so relative paths need the API host prefixed. */
+export const audioSrc = (u: string) => (u.startsWith("/") ? `${API}${u}` : u);
+
 export const fmtT = (s: number): string => {
   // pre-session grid radio has negative t_session_s (before lights out) — real data
   if (s < 0) return `-${fmtT(-s)}`;

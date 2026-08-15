@@ -57,11 +57,12 @@ def asr_atc():
 
 @_try
 def emotion_dim():
-    # audeering/wav2vec2-large-robust-12-ft-emotion-msp-dim → arousal/valence/dominance
-    from transformers import pipeline
-    return pipeline("audio-classification",
-                    model="audeering/wav2vec2-large-robust-12-ft-emotion-msp-dim",
-                    function_to_apply="none", device=0 if _has_cuda() else -1)
+    """audeering A/V/D. Deliberately NOT transformers' `pipeline(...)`: this
+    checkpoint's custom regression head does not bind through the generic
+    audio-classification path — it loads a RANDOM head and returns near-constant
+    values. pipeline/audeering_model.py declares the real architecture."""
+    from .pipeline.audeering_model import AudeeringDimensional
+    return AudeeringDimensional(device="cuda" if _has_cuda() else "cpu")
 
 
 @_try

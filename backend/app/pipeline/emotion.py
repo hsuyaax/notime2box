@@ -11,14 +11,19 @@ SR = 16000
 
 
 def dimensional(samples: np.ndarray, prosody: dict) -> dict:
-    """→ {arousal, valence, source}. audeering outputs A/V/D ∈ [0,1]."""
+    """→ {arousal, valence, dominance, source}. audeering outputs A/V/D ∈ [0,1].
+
+    Uses our explicit architecture (pipeline/audeering_model.py), NOT the stock
+    audio-classification pipeline — the latter silently loads a random regression
+    head for this checkpoint and emits near-constant values. See that module.
+    """
     model = registry.emotion_dim()
     if model is not None:
         try:
-            out = model({"array": samples, "sampling_rate": SR})
-            scores = {o["label"].lower(): float(o["score"]) for o in out}
-            return {"arousal": round(np.clip(scores.get("arousal", 0.5), 0, 1), 3),
-                    "valence": round(np.clip(scores.get("valence", 0.5), 0, 1), 3),
+            r = model(samples, SR)
+            return {"arousal": round(r["arousal"], 3),
+                    "valence": round(r["valence"], 3),
+                    "dominance": round(r["dominance"], 3),
                     "source": "audeering"}
         except Exception as e:
             print(f"[emotion] dim model failed: {e}")

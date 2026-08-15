@@ -1,5 +1,5 @@
 "use client";
-// THE SILENT CO-DRIVER — one continuous scroll narrative, five chapters.
+// THE SILENT CO-DRIVER — one continuous scroll narrative, six chapters.
 import { useState } from "react";
 import ChaptersNav from "@/components/ChaptersNav";
 import RadioCue from "@/components/RadioCue";
@@ -7,6 +7,7 @@ import Interstitial from "@/components/Interstitial";
 import Chapter01Hero from "@/components/chapters/Chapter01Hero";
 import Chapter02Garage from "@/components/chapters/Chapter02Garage";
 import Chapter03RadioRewind from "@/components/chapters/Chapter03RadioRewind";
+import ChapterHardPart from "@/components/chapters/ChapterHardPart";
 import Chapter04Debrief from "@/components/chapters/Chapter04Debrief";
 import Chapter05Cockpit from "@/components/chapters/Chapter05Cockpit";
 import { SessionMeta } from "@/lib/api";
@@ -26,6 +27,8 @@ export default function Home() {
 
       <Chapter03RadioRewind session={session} />
       <Interstitial>"Fatigue is a regime, not a moment."</Interstitial>
+
+      <ChapterHardPart />
 
       <Chapter04Debrief session={session} />
 

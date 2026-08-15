@@ -19,17 +19,23 @@ def make_clip(t, arousal, valence=0.5, z=0.0, lap=None, **kw):
 
 
 def test_silence_grows_variance():
-    kf = Kalman(np.array([0.5, 0.5, 0, 0]))
+    """Uncertainty must grow back toward the prior once evidence stops arriving.
+
+    Starts from a post-update (tight) posterior, because P now *starts* at the
+    driver's prior — silence returns it there rather than pushing past it.
+    """
+    kf = Kalman(np.array([0.5, 0.5, 0, 0]), sigma_inf=0.12)
+    z, H, R = clip_measurement(make_clip(0.0, 0.5))
+    kf.update(z, H, R)
     v0 = kf.P[0, 0]
-    kf.predict(60)
-    v1 = kf.P[0, 0]
-    kf.predict(300)
-    v2 = kf.P[0, 0]
-    assert v1 > v0 and v2 > v1, "variance must strictly grow during radio silence"
+    kf.predict(60);  v1 = kf.P[0, 0]
+    kf.predict(300); v2 = kf.P[0, 0]
+    assert v1 > v0 and v2 > v1, "variance must grow during radio silence"
+    assert v2 <= kf.sigma_inf ** 2 + 1e-9, "and must never exceed the driver's prior"
 
 
 def test_update_shrinks_variance():
-    kf = Kalman(np.array([0.5, 0.5, 0, 0]))
+    kf = Kalman(np.array([0.5, 0.5, 0, 0]), sigma_inf=0.12)
     kf.predict(120)
     prior = kf.P[0, 0]
     z, H, R = clip_measurement(make_clip(120, 0.7))
@@ -84,3 +90,35 @@ def test_engines_share_interface():
     for eng in (NaiveEngine(), BayesEngine()):
         trace, alerts = eng.score_session(clips, [])
         assert len(trace) >= 5 and isinstance(alerts, list)
+
+
+# --- regression guards for two modelling bugs found on real data ---
+
+def test_variance_saturates_instead_of_diverging():
+    """A constant-velocity model made variance grow as Δt⁵ — an hour of silence
+    reported σ≈197 for a quantity bounded in [0,1]. OU dynamics must saturate."""
+    for gap in (60, 900, 3600, 36000):
+        kf = Kalman(np.array([0.5, 0.5, 0.0, 0.0]), sigma_inf=0.12)
+        kf.predict(gap)
+        sd = np.sqrt(kf.P[0, 0])
+        assert sd < 0.6, f"variance diverging at {gap}s: sigma={sd:.2f}"
+    # and it must still GROW with silence, just boundedly
+    a = Kalman(np.array([0.5, 0.5, 0.0, 0.0]), sigma_inf=0.12)
+    b = Kalman(np.array([0.5, 0.5, 0.0, 0.0]), sigma_inf=0.12)
+    z, H, R = clip_measurement(make_clip(0.0, 0.5))
+    a.update(z, H, R); b.update(z, H, R)
+    a.predict(30); b.predict(600)
+    assert np.sqrt(b.P[0, 0]) > np.sqrt(a.P[0, 0])
+
+
+def test_bocpd_sees_jump_in_observations_not_smoothed_posterior():
+    """BOCPD must run on observations. Fed the Kalman posterior it was silent on
+    every real session, because smoothing erases the discontinuity it looks for."""
+    flat = [make_clip(t * 60.0, 0.50) for t in range(8)]
+    jump = flat + [make_clip((8 + t) * 60.0, 0.85) for t in range(6)]
+    _, _ = BayesEngine().score_session(flat, [])
+    tr_flat, _ = BayesEngine().score_session(flat, [])
+    tr_jump, _ = BayesEngine().score_session(jump, [])
+    assert max(p.p_change for p in tr_jump) > max(p.p_change for p in tr_flat), \
+        "a real step change must score higher than a flat session"
+    assert len({p.regime_id for p in tr_jump}) > 1, "step change should open a new regime"
