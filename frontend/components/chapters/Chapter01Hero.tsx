@@ -1,11 +1,27 @@
 "use client";
-// CHAPTER 01 — THE PROBLEM. Canvas waveform bleeding green→red behind a masked-skew
-// title reveal, then a pinned sequence of three statements as the viewer scrolls.
-import { useEffect, useRef } from "react";
+// CHAPTER 01 — THE PROBLEM. Optional dark ambient video (drop one in
+// public/hero-video.mp4 — see README "Adding hero video") layered under the canvas
+// waveform bleeding green→red, behind a masked-skew title reveal, then a pinned
+// sequence of three statements as the viewer scrolls.
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/lib/smoothScroll";
 import MaskedHeading from "@/components/MaskedHeading";
+
+function BgVideo({ reduced }: { reduced: boolean }) {
+  const [failed, setFailed] = useState(false);
+  if (reduced || failed) return null; // reduced-motion: no autoplay video, canvas only
+  return (
+    <video
+      className="absolute inset-0 w-full h-full object-cover opacity-50"
+      autoPlay muted loop playsInline
+      onError={() => setFailed(true)}
+    >
+      <source src="/hero-video.mp4" type="video/mp4" />
+    </video>
+  );
+}
 
 function WaveformCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -80,6 +96,8 @@ export default function Chapter01Hero() {
   return (
     <div ref={rootRef} id="ch-problem">
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+        <BgVideo reduced={reduced} />
+        <div className="absolute inset-0 bg-bg/55" />{/* dark scrim — keeps text legible over any footage */}
         <WaveformCanvas />
         <div className="relative z-10">
           <p className="font-mono text-xs text-dim tracking-[0.3em]">SILENT CO-DRIVER · TELEMETRY FOR THE HUMAN</p>

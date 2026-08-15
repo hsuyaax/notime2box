@@ -43,6 +43,21 @@ normal, Norris's animated is calm.
 Five Hub artifacts behind one swappable engine interface (`ENGINE=naive|bayes`),
 confidence-gated dual ASR, every stage cached by clip hash.
 
+## Adding hero video (optional)
+
+Drop a short (~10–15s, MP4/H.264, under ~8MB) dark ambient clip at
+`frontend/public/hero-video.mp4` — the Chapter 01 hero picks it up automatically,
+layered under the canvas waveform with a dark scrim for text legibility. No file
+present, or `prefers-reduced-motion` on? It falls back to the canvas alone — nothing
+breaks either way. Trim/compress with the ffmpeg you already have installed:
+
+```bash
+ffmpeg -i input.mp4 -t 15 -vf scale=1920:-2 -crf 28 -an frontend/public/hero-video.mp4
+```
+
+Use royalty-free footage only (Pexels, Coverr, Mixkit) — never real F1 broadcast
+footage, which is copyrighted and unsafe on a publicly hosted site.
+
 ## Run
 
 `demo-data/` ships committed in this repo — real radio audio + real model output for
