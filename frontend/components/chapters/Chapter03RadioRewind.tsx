@@ -10,34 +10,76 @@ import RaceCharts from "@/components/RaceCharts";
 import ClipPanel from "@/components/ClipPanel";
 import AlertCard from "@/components/AlertCard";
 import SessionVerdict from "@/components/SessionVerdict";
-import { ClipScore, SessionMeta, Trace, getClips, getTrace, labelColor } from "@/lib/api";
+import { ClipScore, SessionMeta, Trace, fmtT, getClips, getTrace, labelColor } from "@/lib/api";
 import { MOCK_CLIPS, MOCK_TRACE_RESULT } from "@/lib/mockData";
 import { useReducedMotion } from "@/lib/smoothScroll";
 
-function RailCard({ c }: { c: ClipScore }) {
+/** Rail card. Wider and shorter than before so a full radio call is actually
+ *  readable — the transcript was clipped at two lines and the numbers that justify
+ *  the label (z-score, confidence, ASR source) weren't shown at all. Clicking one
+ *  selects that clip in the charts above, which it always should have done. */
+function RailCard({ c, active, onSelect }: {
+  c: ClipScore; active: boolean; onSelect: () => void;
+}) {
+  const isEng = c.speaker === "engineer";
+  const tint = isEng ? "var(--dim)" : labelColor(c.label);
   return (
-    <div className="cut w-64 sm:w-72 shrink-0 p-4 mr-4 snap-start">
-      <p className="font-mono text-[10px] text-dim">LAP {c.lap ?? "—"}</p>
-      {/* Never show a DRIVER-state label on the engineer's voice — that is exactly
-          the contamination the speaker split exists to remove. */}
-      {c.speaker === "engineer" ? (
-        <p className="display text-sm mt-1 text-amber">ENGINEER · NOT SCORED</p>
-      ) : (
-        <p className="display text-sm mt-1" style={{ color: labelColor(c.label) }}>
-          {c.label.toUpperCase()}
-        </p>
-      )}
-      <div className="mt-3 h-10 flex items-end gap-0.5">
-        {Array.from({ length: 40 }, (_, i) => (
+    <button
+      onClick={onSelect}
+      data-cursor="select"
+      className={`cut w-[22rem] sm:w-[26rem] shrink-0 p-5 mr-4 snap-start text-left
+                  transition-colors hover:bg-race-white/[0.03]
+                  ${active ? "ring-1 ring-race-red" : ""}`}
+    >
+      {/* header: where in the race, and how long the call was */}
+      <div className="flex items-baseline justify-between font-mono text-[10px] text-dim">
+        {/* negative session time = before lights out; "LAP — · -43:17" is accurate
+            but reads like a bug, so name what it actually is */}
+        <span>
+          {c.t_session_s < 0
+            ? `GRID · ${fmtT(c.t_session_s)}`
+            : `LAP ${c.lap ?? "—"} · ${fmtT(c.t_session_s)}`}
+        </span>
+        <span>{c.duration_s.toFixed(1)}s</span>
+      </div>
+
+      {/* verdict line */}
+      <div className="flex items-baseline justify-between gap-3 mt-2">
+        {isEng ? (
+          <span className="display text-sm text-amber">ENGINEER · NOT SCORED</span>
+        ) : (
+          <>
+            <span className="display text-base" style={{ color: tint }}>
+              {c.label.toUpperCase()}
+            </span>
+            <span className="font-mono text-[11px]" style={{ color: tint }}>
+              z {c.arousal_z > 0 ? "+" : ""}{c.arousal_z.toFixed(2)}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="mt-3 h-8 flex items-end gap-0.5">
+        {Array.from({ length: 56 }, (_, i) => (
           <div key={i} className="flex-1" style={{
             height: `${15 + 70 * Math.abs(Math.sin(i * 1.9 + c.arousal * 9)) * c.arousal}%`,
-            background: c.speaker === "engineer" ? "var(--dim)" : labelColor(c.label),
-            opacity: c.speaker === "engineer" ? 0.45 : 0.7,
+            background: tint,
+            opacity: isEng ? 0.4 : 0.7,
           }} />
         ))}
       </div>
-      <p className="mt-2 text-xs text-race-white/70 line-clamp-2">"{c.transcript}"</p>
-    </div>
+
+      {/* the actual radio call — the point of the card, so give it room */}
+      <p className="mt-3 text-sm leading-snug text-race-white/85 line-clamp-4 min-h-[4.5rem]">
+        &ldquo;{c.transcript || "—"}&rdquo;
+      </p>
+
+      <div className="flex items-center justify-between font-mono text-[10px] text-dim/70
+                      border-t border-line pt-2 mt-1">
+        <span>ASR {c.asr_model.toUpperCase()} · {(c.asr_conf * 100).toFixed(0)}%</span>
+        {!isEng && <span>CONF {(c.confidence * 100).toFixed(0)}%</span>}
+      </div>
+    </button>
   );
 }
 
@@ -159,14 +201,20 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
           </button>
         </div>
         {railGrid ? (
-          <div className="flex flex-wrap gap-4 px-6 max-w-7xl mx-auto">
-            {clips.map((c) => <RailCard key={c.clip_id} c={c} />)}
+          <div className="flex flex-wrap gap-y-4 px-6 max-w-7xl mx-auto">
+            {clips.map((c) => (
+              <RailCard key={c.clip_id} c={c} active={sel?.clip_id === c.clip_id}
+                onSelect={() => { setSel(c); setCursor(c.t_session_s); }} />
+            ))}
           </div>
         ) : (
           <div ref={railTrackRef} data-cursor="drag"
             className="flex px-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none"
             style={{ willChange: "transform" }}>
-            {clips.map((c) => <RailCard key={c.clip_id} c={c} />)}
+            {clips.map((c) => (
+              <RailCard key={c.clip_id} c={c} active={sel?.clip_id === c.clip_id}
+                onSelect={() => { setSel(c); setCursor(c.t_session_s); }} />
+            ))}
           </div>
         )}
       </div>
