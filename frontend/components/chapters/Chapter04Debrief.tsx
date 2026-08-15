@@ -111,7 +111,7 @@ export default function Chapter04Debrief({ session }: { session: SessionMeta | n
 
   return (
     <section id="ch-debrief" className="min-h-screen px-6 py-24 max-w-7xl mx-auto w-full">
-      <p className="font-mono text-xs text-dim tracking-widest">04 · THE DEBRIEF</p>
+      <p className="font-mono text-xs text-dim tracking-widest">05 · THE DEBRIEF</p>
       <MaskedHeading as="h2" className="display text-3xl md:text-5xl mt-2"
         lines={["THE RACE, IN NUMBERS"]} />
 

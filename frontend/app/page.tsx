@@ -4,6 +4,7 @@ import { useState } from "react";
 import ChaptersNav from "@/components/ChaptersNav";
 import RadioCue from "@/components/RadioCue";
 import Interstitial from "@/components/Interstitial";
+import ChapterMarker from "@/components/ChapterMarker";
 import Chapter01Hero from "@/components/chapters/Chapter01Hero";
 import Chapter02Garage from "@/components/chapters/Chapter02Garage";
 import Chapter03RadioRewind from "@/components/chapters/Chapter03RadioRewind";
@@ -24,15 +25,20 @@ export default function Home() {
       <Chapter01Hero />
       <Interstitial>"It's the mind that makes the difference."</Interstitial>
 
+      <ChapterMarker n="02" label="THE GARAGE" />
       <Chapter02Garage onSelect={setSession} activeKey={session?.key} />
 
+      <ChapterMarker n="03" label="RADIO REWIND" />
       <Chapter03RadioRewind session={session} />
       <Interstitial>"Fatigue is a regime, not a moment."</Interstitial>
 
+      <ChapterMarker n="04" label="THE HARD PART" />
       <ChapterHardPart />
 
+      <ChapterMarker n="05" label="THE DEBRIEF" />
       <Chapter04Debrief session={session} />
 
+      <ChapterMarker n="06" label="TRY THE COCKPIT" />
       <Chapter05Cockpit />
       <Interstitial mark>"The signal was always in the audio. Nobody was decoding it."</Interstitial>
 

@@ -118,7 +118,7 @@ export default function Chapter05Cockpit() {
 
   return (
     <section id="ch-cockpit" className="min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
-      <p className="font-mono text-xs text-dim tracking-widest">05 · TRY THE COCKPIT</p>
+      <p className="font-mono text-xs text-dim tracking-widest">06 · TRY THE COCKPIT</p>
       <MaskedHeading
         as="p" className="text-lg text-race-white/70 mt-3 max-w-xl font-sans normal-case"
         lines={["Read the card. First calm.", "Then like you just lost P6."]}
