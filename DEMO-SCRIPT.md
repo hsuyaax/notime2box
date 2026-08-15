@@ -27,6 +27,10 @@ Then, in the browser you'll present from:
    let a browser permission dialog appear mid-demo.
 5. Zoom to 90% (Ctrl+-) so Radio Rewind fits without scrolling.
 
+Radio Rewind **auto-loads NOR 2024 Lusail** (the session with the most driver
+speech, 13 of 19 clips), so the charts are populated before you touch anything.
+You can still pick any other session in the Garage.
+
 `OFFLINE=1` means **no network is used**. You can demo with WiFi off.
 
 ---
@@ -49,9 +53,10 @@ Then, in the browser you'll present from:
 
 ## BEAT 2 — THE GARAGE (30s)
 
-`Scroll to THE GARAGE. Let them see the grid of sessions.`
+`Scroll to THE GARAGE. Let them see the grid. Hover one card — the driver goes
+from grey to full colour.`
 
-> *"This is real data. Fifteen sessions, real team radio from OpenF1, real lap
+> *"This is real data. Seventeen sessions, real team radio from OpenF1, real lap
 > times from FastF1, all processed through five Hugging Face models."*
 
 `Point at a card's "13 DRIVER" figure.`
@@ -162,8 +167,11 @@ Then, in the browser you'll present from:
 
 **"Does this only work on your one example?"**
 → *Best answer you have.* `Scroll to the Garage picker, let THEM choose any
-2023–2025 race and driver, click LOAD.` It runs live. (Needs WiFi — if the venue
-network is dead, say so and offer it after.)
+2023–2025 race and driver, click LOAD.`
+The race and driver menus are **fully cached** — all 71 races, 1098 drivers — so the
+dropdowns populate with the network unplugged. Pressing LOAD on a session we have not
+processed does need the network to fetch its audio; if the venue WiFi is dead, let
+them pick from the seventeen already loaded instead.
 
 **"How accurate is it?"**
 → *"There is no labelled ground truth for F1 driver stress, so I won't quote you a
@@ -196,7 +204,8 @@ and every truck. Zero new hardware."*
 | Charts empty | You didn't pick a session — go to Garage |
 | Mic does nothing | Permission wasn't granted; reload, click REC, accept |
 | Backend 404s | Restart uvicorn; `OFFLINE=1` |
-| Live race load fails | Venue WiFi. Fall back to a pre-loaded session — say *"that one pulls live from OpenF1, which needs the network"* |
+| Live race load fails | Venue WiFi. Menus still populate (cached); only fetching new audio needs the network. Fall back to a pre-loaded session — say *"that one pulls audio live from OpenF1"* |
+| Driver menu says NO DRIVER LIST CACHED | OpenF1 has no driver data for that race. Pick another. |
 | Video stutters | It's 31MB; not fatal, just scroll on |
 
 ---
