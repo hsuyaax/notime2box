@@ -21,6 +21,7 @@ const FILLER_LINES: Record<ClipScore["label"], string[]> = {
   calm: ["copy that, box this lap", "understood, keeping the delta", "gap behind is two seconds"],
   stressed: ["confirm push push push, losing time", "we need to react, come on", "this isn't working, come on"],
   tired: ["yeah... copy that", "how much longer", "just talk to me"],
+  elevated: ["okay okay copy that", "yeah we're on it", "understood, pushing now"],
   uncertain: ["...", "copy", "yeah"],
 };
 

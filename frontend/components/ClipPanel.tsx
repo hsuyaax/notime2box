@@ -42,7 +42,8 @@ export default function ClipPanel({ clip, steiner }: { clip: ClipScore; steiner:
   }, [clip.clip_id]);
 
   const label = steiner
-    ? { calm: "CALM", stressed: "FULL GUENTHER", tired: "SPICY", uncertain: "??" }[clip.label]
+    ? { calm: "CALM", stressed: "FULL GUENTHER", tired: "SPICY",
+       elevated: "GETTING SPICY", uncertain: "??" }[clip.label]
     : clip.label.toUpperCase();
 
   return (

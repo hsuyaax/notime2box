@@ -20,7 +20,7 @@ export type ClipScore = {
   cat_emotion: Record<string, number>;
   prosody: Prosody;
   text_emotion: Record<string, number>;
-  label: "calm" | "stressed" | "tired" | "uncertain";
+  label: "calm" | "stressed" | "tired" | "elevated" | "uncertain";
   confidence: number;
   signals_agree: boolean;
 };
@@ -96,6 +96,9 @@ export const getWrapped = (key: string, drv: string) =>
 export const labelColor = (label: string) =>
   label === "stressed" ? "var(--red)"
   : label === "tired" ? "var(--amber)"
+  // elevated = clearly above this driver's normal but NOT negative (excited, not
+  // stressed). Amber, because it's worth a glance, never red — see _label().
+  : label === "elevated" ? "var(--amber)"
   : label === "uncertain" ? "var(--dim)"
   : "var(--green)";
 

@@ -158,9 +158,33 @@ export default function ChapterHardPart() {
             <p className="font-mono text-[10px] text-dim tracking-widest">WHAT WE DON&apos;T CLAIM</p>
             <p className="text-sm text-race-white/80 mt-3 leading-relaxed">
               There is no labelled ground truth for F1 driver stress, so we report no accuracy
-              figure. That absence is the reason the design leans on per-driver baselines,
-              multi-signal agreement and visible uncertainty instead of a number we can&apos;t defend.
+              figure. That absence is why the design leans on per-driver baselines and visible
+              uncertainty instead of a number we can&apos;t defend.
             </p>
+            <div className="mt-4 pt-4 border-t border-line">
+              <p className="font-mono text-[10px] text-dim tracking-widest">
+                MEASURED, NOT ASSUMED · n=32 REAL CLIPS
+              </p>
+              <table className="w-full font-mono text-[10px] text-dim mt-2">
+                <tbody>
+                  {[["acoustic ↔ speech rate", "-0.33"],
+                    ["acoustic ↔ text negativity", "-0.13"],
+                    ["speech rate ↔ text negativity", "+0.37"]].map(([k, v]) => (
+                    <tr key={k} className="border-t border-line/50">
+                      <td className="py-1">{k}</td>
+                      <td className="text-right text-race-white">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="font-mono text-[10px] text-dim mt-3 leading-relaxed">
+                The design assumed three channels would corroborate each other. On real radio
+                they largely don&apos;t — acoustic and speech-rate even trend <em>opposite</em>.
+                n=32 is far too small to conclude much, but it is enough to stop us claiming
+                corroboration we haven&apos;t got: agreement is measured per clip and shown as
+                lower confidence rather than asserted.
+              </p>
+            </div>
           </div>
         </div>
       </div>
