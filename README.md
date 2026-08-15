@@ -35,7 +35,7 @@ normal, Norris's animated is calm.
 |---|---|
 | Emotion (categorical) | `emotion2vec/emotion2vec_plus_large` |
 | Emotion (arousal/valence) | `audeering/wav2vec2-large-robust-12-ft-emotion-msp-dim` |
-| ASR primary | `distil-whisper/distil-large-v3.5` (faster-whisper) |
+| ASR primary | `distil-whisper/distil-large-v3.5-ct2` (faster-whisper) |
 | ASR fallback (conf-gated) | `jacktol/whisper-medium.en-fine-tuned-for-atc` |
 | Text emotion | `j-hartmann/emotion-english-distilroberta-base` |
 | VAD | silero-vad |
@@ -45,23 +45,58 @@ confidence-gated dual ASR, every stage cached by clip hash.
 
 ## Run
 
+`demo-data/` ships committed in this repo — real radio audio + real model output for
+3 verified sessions (Qatar 2023 Ocon, Montreal 2024 Norris, Silverstone 2025 Ocon,
+picked by live-queried OpenF1 clip counts, not guesses). `OFFLINE=1` serves that
+bundle with zero external calls.
+
 ```bash
-docker compose up          # backend :8000 · frontend :3000
-OFFLINE=1 docker compose up   # fully offline from the committed demo bundle
+docker compose up             # backend :8000 · frontend :3000, OFFLINE=1 by default
+OFFLINE=0 docker compose up   # also allows loading new sessions live
 ```
 
 Dev, no Docker:
 
 ```bash
-pip install -r backend/requirements.txt
-python -m backend.scripts.seed_demo        # instant demo session
-uvicorn backend.app.main:app --port 8000
+pip install -r backend/requirements.txt   # light — no ML deps, serves demo-data as-is
+OFFLINE=1 uvicorn backend.app.main:app --port 8000
 cd frontend && npm i && npm run dev
 ```
 
-Optional heavy models (Python ≤3.13): `pip install faster-whisper funasr transformers torch`.
-Without them the pipeline degrades to signal-level heuristics and cached outputs —
-the demo never depends on a download.
+**Full live inference** (real models instead of heuristic fallback on Try-the-Cockpit,
+or to prefetch new sessions) needs the heavy stack on Python ≤3.12:
+
+```bash
+py -3.12 -m venv .venv312
+.venv312\Scripts\pip install torch --index-url https://download.pytorch.org/whl/cu128   # or plain `pip install torch` for CPU-only
+.venv312\Scripts\pip install -r backend\requirements.txt -r backend\requirements-ml.txt
+OFFLINE=0 ENGINE=bayes .venv312\Scripts\python -m uvicorn backend.app.main:app --port 8000
+.venv312\Scripts\python -m backend.scripts.prefetch_demo    # re-fetch/refresh demo-data
+.venv312\Scripts\python -m backend.scripts.bench_asr 2023_qatar_R_OCO --top 4
+```
+
+## Hosting a live public link
+
+**Frontend → Vercel** (free): connect the GitHub repo, root directory `frontend/`,
+set env var `NEXT_PUBLIC_API=https://<your-backend-url>`. Zero config beyond that —
+Next.js is a first-class Vercel target.
+
+**Backend → Fly.io** (`fly.toml` at repo root, free/cheap tier): the default profile
+ships `OFFLINE=1` with `requirements.txt` (light, no torch) — serves the 3 committed
+real sessions instantly, no GPU needed, fast cold starts. `fly.toml` mounts a
+persistent volume at `/data` so the SQLite DB + audio survive redeploys.
+
+```bash
+fly launch --no-deploy         # pick a unique app name when prompted, replacing
+                                # the placeholder in fly.toml
+fly volumes create codriver_data --size 1
+fly deploy
+```
+
+That's the whole public site with real data, no ongoing GPU cost. If you also want
+Try-the-Cockpit to run real models live in production (not the heuristic fallback),
+switch the Fly build to `requirements-ml.txt` and provision a GPU machine
+(`fly machine update --vm-gpu-kind a10 ...`) — meaningfully more expensive, optional.
 
 ## What's next
 
