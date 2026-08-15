@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SessionMeta, getSessions, getWrapped } from "@/lib/api";
 import { MOCK_SESSIONS, MOCK_WRAPPED } from "@/lib/mockData";
 import { useReducedMotion } from "@/lib/smoothScroll";
+import YouTubeEmbed from "@/components/YouTubeEmbed";
 
 type Wrapped = typeof MOCK_WRAPPED;
 
@@ -128,6 +129,16 @@ export default function Chapter04Debrief({ session }: { session: SessionMeta | n
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="mt-16">
+        <p className="display text-sm">REAL RADIO, FOR REAL</p>
+        <p className="font-mono text-[10px] text-dim mt-1 mb-4">
+          the actual signal this whole system is built to decode
+        </p>
+        <div className="max-w-2xl">
+          <YouTubeEmbed id="GXB1KF72phY" title="Esteban Ocon — Full Race Team Radio, 2025 Emilia-Romagna GP" />
         </div>
       </div>
     </section>
