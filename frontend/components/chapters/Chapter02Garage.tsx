@@ -68,9 +68,12 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
               "linear-gradient(to left, #000 45%, transparent 100%), linear-gradient(to top, #000 55%, transparent 100%)",
             maskComposite: "intersect",
           }}
+          // grey at rest so the grid reads as one calm system; full colour on hover
+          // so the card you're actually considering comes alive
           className="absolute right-0 bottom-0 h-24 w-auto object-contain object-bottom
                      grayscale contrast-125 brightness-90 opacity-45 pointer-events-none select-none
-                     group-hover:opacity-70 transition-opacity duration-300"
+                     group-hover:grayscale-0 group-hover:opacity-95 group-hover:brightness-100
+                     group-hover:h-28 transition-all duration-300 ease-out"
         />
       )}
 
@@ -172,8 +175,13 @@ function AnyRacePicker({ onLoad }: { onLoad: (s: SessionMeta) => void }) {
         </div>
         <div className={`cut bg-panel ${!race ? "opacity-40" : ""}`}>
           <select value={driver?.acronym ?? ""} onChange={(e) => setDriver(drivers.find((d) => d.acronym === e.target.value) ?? null)}
-            disabled={!race} className="bg-transparent px-3 py-2 font-mono text-xs text-race-white outline-none border-0 min-w-[10rem]">
-            <option value="" className="bg-panel">SELECT DRIVER</option>
+            disabled={!race || !drivers.length}
+            className="bg-transparent px-3 py-2 font-mono text-xs text-race-white outline-none border-0 min-w-[10rem]">
+            {/* An empty dropdown looks like a bug. Say which of the two things it
+                actually is: no race chosen yet, or a driver list we don't hold. */}
+            <option value="" className="bg-panel">
+              {!race ? "SELECT DRIVER" : drivers.length ? "SELECT DRIVER" : "NO DRIVER LIST CACHED"}
+            </option>
             {drivers.map((d) => <option key={d.acronym} value={d.acronym} className="bg-panel">{d.full_name}</option>)}
           </select>
         </div>
@@ -182,6 +190,13 @@ function AnyRacePicker({ onLoad }: { onLoad: (s: SessionMeta) => void }) {
           LOAD →
         </button>
       </div>
+      {race && !drivers.length && !err && (
+        <p className="font-mono text-[10px] text-amber mt-3">
+          No cached driver list for this race. Run
+          {" "}<span className="text-race-white">python -m backend.scripts.warm_catalog</span>{" "}
+          online once, or restart the backend with OFFLINE=0.
+        </p>
+      )}
       {busy && <p className="font-mono text-xs text-amber mt-3">{busy}</p>}
       {err && <p className="font-mono text-xs text-amber mt-3">{err}</p>}
     </div>
