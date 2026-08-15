@@ -17,6 +17,10 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
   const mx = useMotionValue(0.5);
   const numX = useTransform(mx, [0, 1], [-6, 6]);
   const usable = s.driver_clips;
+  // Portrait is optional: drop <ACRONYM>.png into public/drivers/ and it appears.
+  // If it is missing the card falls back to the race-number treatment, so a fresh
+  // clone with no images still looks finished rather than broken.
+  const [hasPhoto, setHasPhoto] = useState(true);
 
   return (
     <motion.button
@@ -34,6 +38,7 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
       className={`cut relative overflow-hidden text-left p-5 pb-6 group
                   ${active ? "ring-1 ring-race-red" : ""}`}
     >
+      {/* race number sits behind everything as texture */}
       <motion.span
         style={{ x: numX }}
         aria-hidden
@@ -43,12 +48,31 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
         {s.driver_number ?? "—"}
       </motion.span>
 
+      {/* driver portrait, bottom-right, desaturated to hold the two-colour palette
+          and lifting to full on hover */}
+      {hasPhoto && (
+        <img
+          src={`/drivers/${s.driver.toUpperCase()}.png`}
+          alt=""
+          aria-hidden
+          onError={() => setHasPhoto(false)}
+          className="absolute -right-3 -bottom-2 h-28 w-auto object-contain object-bottom
+                     grayscale contrast-110 opacity-55 pointer-events-none select-none
+                     group-hover:grayscale-0 group-hover:opacity-90 transition-all duration-300"
+        />
+      )}
+
       <p className="font-mono text-[10px] text-dim tracking-widest relative">
         {s.year} · {s.gp.toUpperCase()}
       </p>
       <p className="display text-3xl mt-1.5 relative">{s.driver}</p>
+      {s.team && (
+        <p className="font-mono text-[9px] text-dim/80 tracking-[0.18em] mt-1 relative">
+          {s.team.toUpperCase()}
+        </p>
+      )}
 
-      <div className="flex items-baseline gap-2 mt-4 font-mono text-[10px] relative">
+      <div className="flex items-baseline gap-2 mt-4 font-mono text-[10px] relative max-w-[62%]">
         <span className="text-race-white">{s.clip_count}</span>
         <span className="text-dim">CLIPS</span>
         {typeof usable === "number" && (

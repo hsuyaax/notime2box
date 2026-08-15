@@ -29,6 +29,25 @@ def _parse_key(key: str) -> tuple[int, str, str, str]:
         raise HTTPException(400, f"bad session key: {key}")
 
 
+_TEAM_CACHE: dict[str, str] = {}
+
+
+def _team_for(meta: dict) -> str:
+    """Team name for a session's driver, from the cached OpenF1 driver catalog."""
+    acr = (meta.get("driver") or "").upper()
+    if acr in _TEAM_CACHE:
+        return _TEAM_CACHE[acr]
+    try:
+        s = openf1.find_session(meta["year"], meta["gp"], "Race")
+        for d in openf1.list_drivers(s["session_key"]):
+            if (d.get("acronym") or "").upper() == acr:
+                _TEAM_CACHE[acr] = d.get("team_name") or ""
+                return _TEAM_CACHE[acr]
+    except Exception:
+        pass
+    return ""
+
+
 @router.get("/sessions")
 def sessions():
     """Session list, each with a real arousal sparkline from the DRIVER's clips —
@@ -39,7 +58,8 @@ def sessions():
         step = max(1, len(cl) // 16)
         m = {**m,
              "spark": [round(c["arousal_z"], 2) for c in cl[::step]][:16],
-             "driver_clips": len(cl)}
+             "driver_clips": len(cl),
+             "team": _team_for(m)}
         out.append(m)
     return out
 

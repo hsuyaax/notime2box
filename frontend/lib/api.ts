@@ -55,6 +55,7 @@ export type LapPoint = {
 export type SessionMeta = {
   spark?: number[];
   driver_clips?: number;
+  team?: string;
   key: string;
   year: number;
   gp: string;
