@@ -30,6 +30,8 @@ class ClipScore(BaseModel):
     confidence: float = 0.0
     signals_agree: bool = False
     signal_spread: float = 0.0    # 0=all three channels agree, 1=maximal conflict
+    speaker: str = "unknown"      # driver | engineer | unknown — team_radio carries
+                                  # BOTH sides of the conversation and labels neither
 
 
 class TracePoint(BaseModel):

@@ -164,3 +164,25 @@ def test_red_mist_fires_on_slow_deliberate_anger():
                       prosody={"rate_sps": 5.5, "pause_ratio": 0.1, "f0_var": 900},
                       text_emotion={"joy": 0.8})
     assert not _red_mist([happy]), "celebration must never trigger a cool-down call"
+
+
+def test_speaker_separation_finds_the_engineer():
+    """team_radio carries both sides of the conversation and labels neither.
+
+    Engineers address the driver by FIRST name — matching the OpenF1 acronym ("NOR")
+    against transcripts that say "Lando" made the strongest cue silent and inverted
+    the cluster labels. Real measurement: 59% of our corpus is not the driver.
+    """
+    from backend.app.pipeline import speaker
+
+    clips = [
+        {"clip_id": "a", "transcript": "Okay, Lando, box this lap, box box."},
+        {"clip_id": "b", "transcript": "Lando, we have a 10 second stop-go penalty."},
+        {"clip_id": "c", "transcript": "I have no grip at all, the rears are gone."},
+        {"clip_id": "d", "transcript": "I can't feel my hands, it's so hot in here."},
+    ]
+    out = speaker.assign_speakers(clips, {}, "NOR", "Lando NORRIS")
+    got = {c["clip_id"]: c["speaker"] for c in out}
+    assert got["a"] == "engineer" and got["b"] == "engineer"
+    assert got["c"] == "driver" and got["d"] == "driver"
+    assert [c["clip_id"] for c in speaker.driver_clips(out)] == ["c", "d"]

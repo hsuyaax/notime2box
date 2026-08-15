@@ -13,7 +13,7 @@ from sse_starlette.sse import EventSourceResponse
 from . import config, store
 from .data import fastf1_client, openf1
 from .engine.base import get_engine
-from .pipeline import clipscore
+from .pipeline import clipscore, speaker
 from .engine.alerts import _red_mist, fatigue_diagnostics
 
 router = APIRouter(prefix="/api")
@@ -112,7 +112,16 @@ def _process_session(key: str) -> None:
                 print(f"[load] clip {clip_id} failed: {e}")
             prog["done"] = i + 1
 
-        scores = clipscore.apply_baseline(scores, key)
+        # team_radio mixes driver and engineer; the driver's baseline must come from
+        # the driver's voice alone or every z-score is contaminated (measured: 59%
+        # of our corpus is not the driver speaking).
+        try:
+            full = next((d.get("full_name", "") for d in openf1.list_drivers(of1["session_key"])
+                         if (d.get("acronym") or "").upper() == driver), "") if of1 else ""
+        except Exception:
+            full = ""
+        scores = speaker.assign_speakers(scores, {}, driver, full)
+        clipscore.apply_baseline(speaker.driver_clips(scores), key)
         store.delete_clips(key)  # clean slate — a re-load must never leave stale rows behind
         for s in scores:
             store.save_clip(key, s)
@@ -146,13 +155,19 @@ def trace(key: str, engine: str = Query(default=None)):
     if not cl:
         raise HTTPException(404, "session not processed")
     laps = store.get_laps(key)
+    # Driver state is estimated from the DRIVER's voice only — engineer calls are
+    # kept in /clips so the UI can still show the whole conversation.
+    drv = speaker.driver_clips(cl)
     eng = get_engine(engine or config.ENGINE)
-    tr, alerts = eng.score_session(cl, laps)
+    tr, alerts = eng.score_session(drv, laps)
     return {"engine": eng.name,
             "trace": [t.model_dump() for t in tr],
             "alerts": [a.model_dump() for a in alerts],
             "laps": laps,
-            "fatigue": fatigue_diagnostics(cl, laps)}
+            "fatigue": fatigue_diagnostics(drv, laps),
+            "speakers": {"driver": sum(1 for c in cl if c.get("speaker") == "driver"),
+                         "engineer": sum(1 for c in cl if c.get("speaker") == "engineer"),
+                         "unknown": sum(1 for c in cl if c.get("speaker", "unknown") == "unknown")}}
 
 
 async def _score_upload(file: UploadFile, baseline: int, baseline_key: str) -> dict:

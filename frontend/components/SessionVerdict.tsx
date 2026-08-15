@@ -8,9 +8,10 @@
 // is a different finding from quiet with high confidence.
 import { Alert, ClipScore, FatigueDiag, TracePoint } from "@/lib/api";
 
-type Props = { clips: ClipScore[]; trace: TracePoint[]; alerts: Alert[]; fatigue?: FatigueDiag };
+type Props = { clips: ClipScore[]; trace: TracePoint[]; alerts: Alert[]; fatigue?: FatigueDiag;
+  speakers?: { driver: number; engineer: number; unknown: number } };
 
-export default function SessionVerdict({ clips, trace, alerts, fatigue }: Props) {
+export default function SessionVerdict({ clips, trace, alerts, fatigue, speakers }: Props) {
   if (!clips.length) return null;
 
   const regimes = new Set(trace.map((p) => p.regime_id)).size;
@@ -38,6 +39,9 @@ export default function SessionVerdict({ clips, trace, alerts, fatigue }: Props)
         <tbody>
           {[
             ["clips analysed", String(clips.length)],
+            ...(speakers
+              ? [["— driver / engineer", `${speakers.driver + speakers.unknown} / ${speakers.engineer}`] as [string, string]]
+              : []),
             ["state regimes", String(regimes)],
             ["flagged clips", `${flagged} / ${clips.length}`],
             ["peak arousal", `${peak.arousal_z > 0 ? "+" : ""}${peak.arousal_z.toFixed(1)}σ${peak.lap ? ` · lap ${peak.lap}` : ""}`],
@@ -52,6 +56,17 @@ export default function SessionVerdict({ clips, trace, alerts, fatigue }: Props)
           ))}
         </tbody>
       </table>
+
+      {speakers && speakers.engineer > 0 && (
+        <p className="text-dim mt-3 leading-relaxed normal-case">
+          <span className="text-amber">
+            {Math.round((100 * speakers.engineer) / Math.max(clips.length, 1))}% of this
+            session is the race engineer, not the driver.
+          </span>{" "}
+          OpenF1 ships both sides of the conversation under one driver number and labels
+          neither. Driver state is estimated from the driver&apos;s voice only.
+        </p>
+      )}
 
       {fatigue?.available && (
         <div className="mt-3 pt-3 border-t border-line/60">

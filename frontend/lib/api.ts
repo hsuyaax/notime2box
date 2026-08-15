@@ -24,6 +24,7 @@ export type ClipScore = {
   confidence: number;
   signals_agree: boolean;
   signal_spread?: number;
+  speaker?: "driver" | "engineer" | "unknown";
 };
 
 export type TracePoint = {
@@ -82,6 +83,7 @@ export type Trace = {
   alerts: Alert[];
   laps: LapPoint[];
   fatigue?: FatigueDiag;
+  speakers?: { driver: number; engineer: number; unknown: number };
 };
 
 const j = (r: Response) => {

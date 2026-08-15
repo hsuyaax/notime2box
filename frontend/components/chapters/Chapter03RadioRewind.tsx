@@ -17,7 +17,10 @@ import { useReducedMotion } from "@/lib/smoothScroll";
 function RailCard({ c }: { c: ClipScore }) {
   return (
     <div className="cut w-64 sm:w-72 shrink-0 p-4 mr-4 snap-start">
-      <p className="font-mono text-[10px] text-dim">LAP {c.lap ?? "—"}</p>
+      <p className="font-mono text-[10px] text-dim">
+        LAP {c.lap ?? "—"}
+        {c.speaker === "engineer" && <span className="text-amber"> · ENGINEER</span>}
+      </p>
       <p className="display text-sm mt-1" style={{ color: labelColor(c.label) }}>{c.label.toUpperCase()}</p>
       <div className="mt-3 h-10 flex items-end gap-0.5">
         {Array.from({ length: 40 }, (_, i) => (
@@ -136,7 +139,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
                 <AlertCard key={`${a.type}${a.t_start}`} alert={a} />
               ))}
             </AnimatePresence>
-            <SessionVerdict clips={clips} trace={trace.trace} alerts={trace.alerts} fatigue={trace.fatigue} />
+            <SessionVerdict clips={clips} trace={trace.trace} alerts={trace.alerts} fatigue={trace.fatigue} speakers={trace.speakers} />
           </div>
         </div>
       </div>
