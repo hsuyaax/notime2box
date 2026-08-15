@@ -32,6 +32,17 @@ def sessions():
     return store.get_sessions()
 
 
+@router.get("/catalog/{year}")
+def catalog_races(year: int):
+    """Every real race in a season — powers the 'load any race' picker."""
+    return openf1.list_races(year)
+
+
+@router.get("/catalog/{year}/drivers")
+def catalog_drivers(year: int, session_key: int):
+    return openf1.list_drivers(session_key)
+
+
 @router.post("/sessions/{key}/load")
 def load_session(key: str, tasks: BackgroundTasks):
     if _progress.get(key, {}).get("status") == "running":

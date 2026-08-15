@@ -24,13 +24,37 @@ def _get(endpoint: str, **params) -> list[dict]:
     return data
 
 
+def _norm(s: str) -> str:
+    """Alnum-only lowercase — makes multi-word race names ("Saudi Arabia") match a
+    space-free gp slug ("saudiarabia") used in session keys (which split on '_')."""
+    return re.sub(r"[^a-z0-9]", "", s.lower())
+
+
+def gp_slug(s: dict) -> str:
+    return _norm(s.get("circuit_short_name") or s.get("country_name") or "")
+
+
 def find_session(year: int, gp: str, session_name: str = "Race") -> dict | None:
     sessions = _get("sessions", year=year, session_name=session_name)
-    gp_l = gp.lower()
+    gp_n = _norm(gp)
     for s in sessions:
-        if gp_l in s.get("country_name", "").lower() or gp_l in s.get("circuit_short_name", "").lower():
+        if gp_n in _norm(s.get("country_name", "")) or gp_n in _norm(s.get("circuit_short_name", "")):
             return s
     return None
+
+
+def list_races(year: int, session_name: str = "Race") -> list[dict]:
+    """Every race in a season, with a ready-to-use gp_slug for building session keys."""
+    sessions = _get("sessions", year=year, session_name=session_name)
+    return [{"gp_slug": gp_slug(s), "country_name": s["country_name"],
+             "circuit_short_name": s["circuit_short_name"], "session_key": s["session_key"],
+             "date_start": s["date_start"]} for s in sessions]
+
+
+def list_drivers(session_key: int) -> list[dict]:
+    return [{"acronym": d.get("name_acronym"), "full_name": d.get("full_name"),
+             "team_name": d.get("team_name"), "driver_number": d.get("driver_number")}
+            for d in _get("drivers", session_key=session_key)]
 
 
 def driver_number(session_key: int, acronym: str) -> int | None:

@@ -3,7 +3,7 @@
 // hover parallax + underline sweep, pit-board loading sequence on select.
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { API, SessionMeta, getSessions } from "@/lib/api";
+import { API, DriverOption, RaceOption, SessionMeta, getDrivers, getRaces, getSessions } from "@/lib/api";
 import { MOCK_SESSIONS } from "@/lib/mockData";
 import MaskedHeading from "@/components/MaskedHeading";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
@@ -40,6 +40,83 @@ function DriverCard({ s, i, active, onSelect }: { s: SessionMeta; i: number; act
       </p>
       <span className="block h-0.5 bg-race-red w-0 group-hover:w-[calc(100%-4rem)] transition-all duration-300 absolute bottom-6 left-8" />
     </motion.button>
+  );
+}
+
+function AnyRacePicker({ onLoad }: { onLoad: (s: SessionMeta) => void }) {
+  const years = [2023, 2024, 2025];
+  const [year, setYear] = useState(2024);
+  const [races, setRaces] = useState<RaceOption[]>([]);
+  const [race, setRace] = useState<RaceOption | null>(null);
+  const [drivers, setDrivers] = useState<DriverOption[]>([]);
+  const [driver, setDriver] = useState<DriverOption | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    setRace(null); setDrivers([]); setDriver(null);
+    getRaces(year).then(setRaces).catch(() => setErr("couldn't reach OpenF1"));
+  }, [year]);
+
+  useEffect(() => {
+    setDriver(null);
+    if (!race) return setDrivers([]);
+    getDrivers(year, race.session_key).then(setDrivers).catch(() => setErr("couldn't reach OpenF1"));
+  }, [race, year]);
+
+  const load = async () => {
+    if (!race || !driver) return;
+    setErr("");
+    const key = `${year}_${race.gp_slug}_R_${driver.acronym}`;
+    setBusy("PULLING RADIO…");
+    await fetch(`${API}/api/sessions/${key}/load`, { method: "POST" }).catch(() => {});
+    const es = new EventSource(`${API}/api/sessions/${key}/progress`);
+    es.onmessage = (e) => {
+      const p = JSON.parse(e.data);
+      setBusy(`PULLING RADIO… ${p.done}/${p.total || "?"} CLIPS`);
+      if (p.status !== "running") {
+        es.close();
+        setBusy(null);
+        if (p.status === "done") {
+          onLoad({ key, year, gp: race.gp_slug, session: "R", driver: driver.acronym,
+                   driver_number: driver.driver_number, clip_count: 0, ready: true });
+        } else {
+          setErr(p.status === "error: session not found on OpenF1"
+            ? "no radio data for this driver at this race (real gap — not every session has coverage)"
+            : String(p.status));
+        }
+      }
+    };
+  };
+
+  return (
+    <div className="cut p-5 mt-4">
+      <p className="font-mono text-[10px] text-dim tracking-widest mb-3">
+        LOAD ANY REAL 2023–2025 RACE · LIVE FROM OPENF1 + FASTF1
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <select value={year} onChange={(e) => setYear(Number(e.target.value))}
+          className="cut bg-panel px-3 py-2 font-mono text-xs text-race-white">
+          {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select value={race?.session_key ?? ""} onChange={(e) => setRace(races.find((r) => r.session_key === Number(e.target.value)) ?? null)}
+          className="cut bg-panel px-3 py-2 font-mono text-xs text-race-white min-w-[10rem]">
+          <option value="">SELECT RACE</option>
+          {races.map((r) => <option key={r.session_key} value={r.session_key}>{r.country_name}</option>)}
+        </select>
+        <select value={driver?.acronym ?? ""} onChange={(e) => setDriver(drivers.find((d) => d.acronym === e.target.value) ?? null)}
+          disabled={!race} className="cut bg-panel px-3 py-2 font-mono text-xs text-race-white min-w-[10rem] disabled:opacity-40">
+          <option value="">SELECT DRIVER</option>
+          {drivers.map((d) => <option key={d.acronym} value={d.acronym}>{d.full_name}</option>)}
+        </select>
+        <button onClick={load} disabled={!driver || !!busy} data-cursor="select"
+          className="cut px-4 py-2 font-mono text-xs bg-race-red text-race-white disabled:opacity-40">
+          LOAD →
+        </button>
+      </div>
+      {busy && <p className="font-mono text-xs text-amber mt-3">{busy}</p>}
+      {err && <p className="font-mono text-xs text-amber mt-3">{err}</p>}
+    </div>
   );
 }
 
@@ -86,6 +163,8 @@ export default function Chapter02Garage({ onSelect, activeKey }: {
           PULLING RADIO… {loading.done}/{loading.total || "?"} CLIPS
         </div>
       )}
+
+      <AnyRacePicker onLoad={onSelect} />
 
       <div className="mt-16 max-w-xl">
         <p className="font-mono text-[10px] text-dim tracking-widest mb-3">HEAR IT FOR YOURSELF</p>

@@ -75,6 +75,17 @@ const j = (r: Response) => {
 
 export const getSessions = (): Promise<SessionMeta[]> =>
   fetch(`${API}/api/sessions`).then(j);
+
+export type RaceOption = {
+  gp_slug: string; country_name: string; circuit_short_name: string;
+  session_key: number; date_start: string;
+};
+export type DriverOption = { acronym: string; full_name: string; team_name: string; driver_number: number };
+
+export const getRaces = (year: number): Promise<RaceOption[]> =>
+  fetch(`${API}/api/catalog/${year}`).then(j);
+export const getDrivers = (year: number, sessionKey: number): Promise<DriverOption[]> =>
+  fetch(`${API}/api/catalog/${year}/drivers?session_key=${sessionKey}`).then(j);
 export const getClips = (key: string): Promise<ClipScore[]> =>
   fetch(`${API}/api/sessions/${key}/clips`).then(j);
 export const getTrace = (key: string, engine: string): Promise<Trace> =>
