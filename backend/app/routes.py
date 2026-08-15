@@ -14,7 +14,7 @@ from . import config, store
 from .data import fastf1_client, openf1
 from .engine.base import get_engine
 from .pipeline import clipscore
-from .engine.alerts import _red_mist
+from .engine.alerts import _red_mist, fatigue_diagnostics
 
 router = APIRouter(prefix="/api")
 
@@ -151,7 +151,8 @@ def trace(key: str, engine: str = Query(default=None)):
     return {"engine": eng.name,
             "trace": [t.model_dump() for t in tr],
             "alerts": [a.model_dump() for a in alerts],
-            "laps": laps}
+            "laps": laps,
+            "fatigue": fatigue_diagnostics(cl, laps)}
 
 
 async def _score_upload(file: UploadFile, baseline: int, baseline_key: str) -> dict:

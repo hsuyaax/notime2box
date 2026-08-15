@@ -136,7 +136,7 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
                 <AlertCard key={`${a.type}${a.t_start}`} alert={a} />
               ))}
             </AnimatePresence>
-            <SessionVerdict clips={clips} trace={trace.trace} alerts={trace.alerts} />
+            <SessionVerdict clips={clips} trace={trace.trace} alerts={trace.alerts} fatigue={trace.fatigue} />
           </div>
         </div>
       </div>

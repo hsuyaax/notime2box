@@ -5,7 +5,7 @@ import pytest
 from backend.app.engine.kalman import Kalman, BayesEngine, clip_measurement
 from backend.app.engine.bocpd import BOCPD
 from backend.app.engine.naive import NaiveEngine
-from backend.app.engine.alerts import detect_alerts, _red_mist
+from backend.app.engine.alerts import detect_alerts, _red_mist, fatigue_diagnostics
 
 
 def make_clip(t, arousal, valence=0.5, z=0.0, lap=None, **kw):
@@ -71,18 +71,35 @@ def test_red_mist_fires():
 
 
 def test_fatigue_drift_needs_lap_corroboration():
-    clips = [make_clip(t * 60.0, 0.2, z=-1.5, lap=t + 1) for t in range(6)]
+    """Voice decline alone must never fire — the car has to agree.
+
+    This is the rule doing real work on real data: Russell, Qatar 2023, declined
+    more than any driver we have (Hedges g=+0.67) but lapped 0.8s FASTER over the
+    same window, so no alert. A voice-only system would have raised one.
+    """
+    # clear early->late decline in arousal
+    clips = ([make_clip(t * 60.0, 0.80, lap=t + 1) for t in range(4)] +
+             [make_clip((4 + t) * 60.0, 0.40, lap=5 + t) for t in range(4)])
     trace, _ = NaiveEngine().score_session(clips, [])
-    # laps flat → no alert
+
     flat = [{"lap": i + 1, "lap_time_s": 90.0, "t_start_s": i * 90.0, "is_pit": False}
             for i in range(20)]
-    assert not [a for a in detect_alerts(clips, trace, flat) if a.type == "fatigue_drift"]
-    # laps degrading in the drift window (rest of the race clean) → alert
-    slow = [{"lap": i + 1,
-             "lap_time_s": 90.0 + (0.6 if i < 6 else 0.0),
+    assert not [a for a in detect_alerts(clips, trace, flat) if a.type == "fatigue_drift"],         "state dipped but lap times held — not fatigue"
+
+    slow = [{"lap": i + 1, "lap_time_s": 90.0 + (0.9 if 5 <= i + 1 <= 8 else 0.0),
              "t_start_s": i * 90.0, "is_pit": False} for i in range(20)]
     fired = [a for a in detect_alerts(clips, trace, slow) if a.type == "fatigue_drift"]
-    assert fired and fired[0].evidence["lap_delta_s"] >= 0.25
+    assert fired, "decline corroborated by lap-time loss must fire"
+    assert fired[0].evidence["effect_size_g"] >= 0.8
+    assert fired[0].evidence["lap_delta_s"] >= 0.25
+
+
+def test_fatigue_diagnostics_always_reported():
+    """'No alert' is only trustworthy if you can see what was measured."""
+    clips = [make_clip(t * 60.0, 0.6, lap=t + 1) for t in range(9)]
+    d = fatigue_diagnostics(clips, [])
+    assert d["available"] and "effect_size_g" in d and "lap_delta_s" in d
+    assert fatigue_diagnostics(clips[:2], [])["available"] is False
 
 
 def test_engines_share_interface():

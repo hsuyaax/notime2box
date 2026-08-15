@@ -62,11 +62,26 @@ export type SessionMeta = {
   ready: boolean;
 };
 
+export type FatigueDiag = {
+  available: boolean;
+  reason?: string;
+  effect_size_g?: number;
+  effect_threshold?: number;
+  effect_met?: boolean;
+  arousal_early?: number;
+  arousal_late?: number;
+  clips_compared?: number;
+  lap_delta_s?: number;
+  lap_threshold?: number;
+  lap_met?: boolean;
+};
+
 export type Trace = {
   engine: string;
   trace: TracePoint[];
   alerts: Alert[];
   laps: LapPoint[];
+  fatigue?: FatigueDiag;
 };
 
 const j = (r: Response) => {

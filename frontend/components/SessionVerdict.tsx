@@ -6,11 +6,11 @@
 // gives a pit wall no way to tell the difference. So the panel always states a
 // verdict and what it rests on — quiet is a finding, and quiet with low confidence
 // is a different finding from quiet with high confidence.
-import { Alert, ClipScore, TracePoint } from "@/lib/api";
+import { Alert, ClipScore, FatigueDiag, TracePoint } from "@/lib/api";
 
-type Props = { clips: ClipScore[]; trace: TracePoint[]; alerts: Alert[] };
+type Props = { clips: ClipScore[]; trace: TracePoint[]; alerts: Alert[]; fatigue?: FatigueDiag };
 
-export default function SessionVerdict({ clips, trace, alerts }: Props) {
+export default function SessionVerdict({ clips, trace, alerts, fatigue }: Props) {
   if (!clips.length) return null;
 
   const regimes = new Set(trace.map((p) => p.regime_id)).size;
@@ -52,6 +52,32 @@ export default function SessionVerdict({ clips, trace, alerts }: Props) {
           ))}
         </tbody>
       </table>
+
+      {fatigue?.available && (
+        <div className="mt-3 pt-3 border-t border-line/60">
+          <p className="text-dim tracking-widest">FATIGUE TEST · EARLY vs LATE</p>
+          <table className="w-full text-dim mt-2">
+            <tbody>
+              <tr className="border-t border-line/40">
+                <td className="py-1">effect size (Hedges g)</td>
+                <td className="py-1 text-right" style={{ color: fatigue.effect_met ? "var(--amber)" : "var(--white)" }}>
+                  {fatigue.effect_size_g?.toFixed(2)} / {fatigue.effect_threshold?.toFixed(1)}
+                </td>
+              </tr>
+              <tr className="border-t border-line/40">
+                <td className="py-1">lap delta</td>
+                <td className="py-1 text-right" style={{ color: fatigue.lap_met ? "var(--amber)" : "var(--white)" }}>
+                  {(fatigue.lap_delta_s ?? 0) > 0 ? "+" : ""}{fatigue.lap_delta_s?.toFixed(2)}s / +{fatigue.lap_threshold?.toFixed(2)}s
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="text-dim mt-2 leading-relaxed normal-case">
+            Both must clear for a fatigue alert. Voice decline alone never fires — a
+            quiet driver who is lapping fine is not a fatigued driver.
+          </p>
+        </div>
+      )}
 
       <p className="text-dim mt-3 leading-relaxed normal-case">
         {clear ? (
