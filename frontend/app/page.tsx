@@ -1,6 +1,6 @@
 "use client";
 // THE SILENT CO-DRIVER — one continuous scroll narrative, six chapters.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChaptersNav from "@/components/ChaptersNav";
 import RadioCue from "@/components/RadioCue";
 import Interstitial from "@/components/Interstitial";
@@ -11,10 +11,24 @@ import Chapter03RadioRewind from "@/components/chapters/Chapter03RadioRewind";
 import ChapterHardPart from "@/components/chapters/ChapterHardPart";
 import Chapter04Debrief from "@/components/chapters/Chapter04Debrief";
 import Chapter05Cockpit from "@/components/chapters/Chapter05Cockpit";
-import { SessionMeta } from "@/lib/api";
+import { SessionMeta, getSessions } from "@/lib/api";
 
 export default function Home() {
   const [session, setSession] = useState<SessionMeta | null>(null);
+
+  // Preselect the session with the most DRIVER speech so the analysis screen is
+  // never showing placeholder data while the backend is up — and so the engine
+  // toggle works immediately instead of silently doing nothing until you pick one.
+  useEffect(() => {
+    getSessions()
+      .then((all) => {
+        const best = all
+          .filter((s) => s.ready)
+          .sort((a, b) => (b.driver_clips ?? 0) - (a.driver_clips ?? 0))[0];
+        if (best) setSession((cur) => cur ?? best);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="flex-1">

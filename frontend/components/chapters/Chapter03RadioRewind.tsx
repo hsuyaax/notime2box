@@ -150,10 +150,11 @@ export default function Chapter03RadioRewind({ session }: { session: SessionMeta
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSteiner(!steiner)}
-              title="settings"
-              className={`cut px-2 py-1.5 font-mono text-[10px] ${steiner ? "text-amber" : "text-dim"}`}
+              title="Rename the state labels: calm / spicy / full Guenther"
+              className={`cut px-3 py-1.5 font-mono text-[10px] tracking-widest
+                          ${steiner ? "text-amber" : "text-dim hover:text-race-white"}`}
             >
-              GS
+              {steiner ? "GUENTHER ON" : "GUENTHER"}
             </button>
             <div className="cut flex" data-cursor="drag">
               {(["naive", "bayes"] as const).map((e) => (
