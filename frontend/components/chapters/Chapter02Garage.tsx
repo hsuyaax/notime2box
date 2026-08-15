@@ -95,20 +95,29 @@ function AnyRacePicker({ onLoad }: { onLoad: (s: SessionMeta) => void }) {
         LOAD ANY REAL 2023–2025 RACE · LIVE FROM OPENF1 + FASTF1
       </p>
       <div className="flex flex-wrap gap-3">
-        <select value={year} onChange={(e) => setYear(Number(e.target.value))}
-          className="cut bg-panel px-3 py-2 font-mono text-xs text-race-white">
-          {years.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <select value={race?.session_key ?? ""} onChange={(e) => setRace(races.find((r) => r.session_key === Number(e.target.value)) ?? null)}
-          className="cut bg-panel px-3 py-2 font-mono text-xs text-race-white min-w-[10rem]">
-          <option value="">SELECT RACE</option>
-          {races.map((r) => <option key={r.session_key} value={r.session_key}>{r.country_name}</option>)}
-        </select>
-        <select value={driver?.acronym ?? ""} onChange={(e) => setDriver(drivers.find((d) => d.acronym === e.target.value) ?? null)}
-          disabled={!race} className="cut bg-panel px-3 py-2 font-mono text-xs text-race-white min-w-[10rem] disabled:opacity-40">
-          <option value="">SELECT DRIVER</option>
-          {drivers.map((d) => <option key={d.acronym} value={d.acronym}>{d.full_name}</option>)}
-        </select>
+        {/* clip-path must never sit on a <select> itself — it corrupts the native
+            dropdown popup's position/rendering in most browsers. Cut the wrapper,
+            leave the form control itself un-clipped. */}
+        <div className="cut bg-panel">
+          <select value={year} onChange={(e) => setYear(Number(e.target.value))}
+            className="bg-transparent px-3 py-2 font-mono text-xs text-race-white outline-none border-0">
+            {years.map((y) => <option key={y} value={y} className="bg-panel">{y}</option>)}
+          </select>
+        </div>
+        <div className="cut bg-panel">
+          <select value={race?.session_key ?? ""} onChange={(e) => setRace(races.find((r) => r.session_key === Number(e.target.value)) ?? null)}
+            className="bg-transparent px-3 py-2 font-mono text-xs text-race-white outline-none border-0 min-w-[10rem]">
+            <option value="" className="bg-panel">SELECT RACE</option>
+            {races.map((r) => <option key={r.session_key} value={r.session_key} className="bg-panel">{r.country_name}</option>)}
+          </select>
+        </div>
+        <div className={`cut bg-panel ${!race ? "opacity-40" : ""}`}>
+          <select value={driver?.acronym ?? ""} onChange={(e) => setDriver(drivers.find((d) => d.acronym === e.target.value) ?? null)}
+            disabled={!race} className="bg-transparent px-3 py-2 font-mono text-xs text-race-white outline-none border-0 min-w-[10rem]">
+            <option value="" className="bg-panel">SELECT DRIVER</option>
+            {drivers.map((d) => <option key={d.acronym} value={d.acronym} className="bg-panel">{d.full_name}</option>)}
+          </select>
+        </div>
         <button onClick={load} disabled={!driver || !!busy} data-cursor="select"
           className="cut px-4 py-2 font-mono text-xs bg-race-red text-race-white disabled:opacity-40">
           LOAD →
