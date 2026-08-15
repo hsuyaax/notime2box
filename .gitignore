@@ -11,3 +11,4 @@ demo-data/cache/
 .env.local
 .claude/
 .gstack/
+*.mp4
