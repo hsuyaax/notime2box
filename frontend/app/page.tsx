@@ -2,6 +2,7 @@
 // THE SILENT CO-DRIVER — one continuous scroll narrative, five chapters.
 import { useState } from "react";
 import ChaptersNav from "@/components/ChaptersNav";
+import RadioCue from "@/components/RadioCue";
 import Interstitial from "@/components/Interstitial";
 import Chapter01Hero from "@/components/chapters/Chapter01Hero";
 import Chapter02Garage from "@/components/chapters/Chapter02Garage";
@@ -16,6 +17,7 @@ export default function Home() {
   return (
     <main className="flex-1">
       <ChaptersNav />
+      <RadioCue />
 
       <Chapter01Hero />
       <Interstitial>"It's the mind that makes the difference."</Interstitial>

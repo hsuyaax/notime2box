@@ -65,6 +65,21 @@ export default function Chapter05Cockpit() {
   const [err, setErr] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const recRef = useRef<MediaRecorder | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = async (file: File) => {
+    setErr("");
+    setPhase("busy");
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd });
+      setResult(await r.json());
+    } catch {
+      setErr("scoring failed — is the backend up?");
+    }
+    setPhase("idle");
+  };
 
   const record = async () => {
     setErr("");
@@ -126,6 +141,19 @@ export default function Chapter05Cockpit() {
         {phase === "rec" ? "STOP" : phase === "busy" ? "…" : "REC"}
       </motion.button>
       <LiveWaveform stream={stream} active={phase === "rec"} />
+
+      <input
+        ref={fileRef} type="file" accept="audio/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); e.target.value = ""; }}
+      />
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={phase === "busy"}
+        className="font-mono text-xs text-dim hover:text-race-white underline underline-offset-4 mt-4"
+      >
+        or upload an audio clip →
+      </button>
+
       {err && <p className="font-mono text-xs text-amber mt-4">{err}</p>}
 
       {result && (
