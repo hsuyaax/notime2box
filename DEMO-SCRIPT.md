@@ -37,9 +37,13 @@ Then, in the browser you'll present from:
    let a browser permission dialog appear mid-demo.
 5. Zoom to 90% (Ctrl+-) so Radio Rewind fits without scrolling.
 
-Radio Rewind **auto-loads NOR 2024 Lusail** (the session with the most driver
-speech, 13 of 19 clips), so the charts are populated before you touch anything.
-You can still pick any other session in the Garage.
+Radio Rewind **auto-loads NOR 2024 Lusail** (19 clips), so the charts are populated
+before you touch anything. You can still pick any other session in the Garage.
+
+**Three cards in the picker are empty — do not click them on camera:**
+`2024 JEDDAH — VER`, `2024 JEDDAH — RIC`, `2024 ZANDVOORT — SAI`. They are listed
+but have zero processed clips, so the rail comes up blank and the charts 404. Every
+other session works.
 
 `OFFLINE=1` means **no network is used**. You can demo with WiFi off.
 
@@ -66,15 +70,19 @@ You can still pick any other session in the Garage.
 `Scroll to THE GARAGE. Let them see the grid. Hover one card — the driver goes
 from grey to full colour.`
 
-> *"This is real data. Seventeen sessions, real team radio from OpenF1, real lap
-> times from FastF1, all processed through five Hugging Face models."*
+> *"This is real data. Fifteen processed sessions, 179 radio clips, real team radio
+> from OpenF1, real lap times from FastF1, all through five Hugging Face models."*
 
-`Point at a card's "13 DRIVER" figure.`
+`Point at 2024 MELBOURNE — SAI and its "7 DRIVER" figure.` **Use this card — it is
+the cleanest separation in the set: 18 clips, 7 driver, 11 engineer, 0 unknown.**
 
-> *"And notice this number. Team radio carries both sides of the conversation and
-> labels neither. Nineteen clips, only thirteen are actually the driver. The rest
-> is his race engineer — and if you score the engineer's voice as the driver's
-> emotional state, everything downstream is wrong. We separate them."*
+> *"Notice this number. Team radio carries both sides of the conversation and labels
+> neither. Eighteen clips here, only seven are actually the driver — the other eleven
+> are his race engineer. If you score the engineer's voice as the driver's emotional
+> state, everything downstream is wrong. So we separate them first."*
+
+> *"Across the whole corpus it's 26 driver clips out of 179. Most of what sounds like
+> driver radio isn't."*
 
 `Click 2023 LUSAIL — RUS.`
 
@@ -116,19 +124,27 @@ from grey to full colour.`
 
 > *"Here's the part I actually want to show you. This is the fatigue test."*
 
-`Point at effect size 0.67 / 0.8 and lap delta.`
+`Point at effect size −0.21 against the 0.8 threshold, and the lap delta −0.02s.`
 
-> *"Russell declined more than any driver in our dataset — his voice measurably
-> drops across the race. But over the same window his lap times got 0.8 seconds
-> FASTER. So the system refuses to raise a fatigue alert."*
+> *"Two independent tests have to pass before we call fatigue. The voice test wants an
+> effect size of 0.8 across the race — Russell's is minus 0.21, so his voice didn't
+> decline at all, it drifted slightly the other way. And his lap times are flat, two
+> hundredths. Both tests fail, so the system raises nothing."*
 
-> *"A voice-only system would have cried wolf there. Ours needs the car to agree."*
+> *"That's true of every session here. Zero fatigue alerts across all fifteen. We ran
+> the test, we show you the number, and we refuse to call it. A voice-only system
+> tuned to fire would have cried wolf fifteen times."*
 
 `Scroll to THE HARD PART → the "MEASURED, NOT ASSUMED" table.`
 
 > *"We assumed three signals — voice, rhythm, words — would corroborate each other.
 > We measured it. They don't. Acoustic arousal and speech rate correlate at
-> minus 0.33 — the opposite of the assumption we built on."*
+> minus 0.3 — the opposite of the assumption we built on."*
+
+**If a judge reads the `n=32` on that table and asks:** it's the figure from when we
+froze that panel; the corpus has since grown to 179 clips and acoustic↔rate is now
+−0.30 on n=168. Say that — the sign and the size held as the data grew, which is the
+better story anyway. Don't pretend the table is live.
 
 > *"That's on the site, not buried. It changed the product: our anger rule used to
 > require fast speech, and it was vetoing the clearest angry clip we had, because
@@ -200,6 +216,12 @@ returns plausible numbers. Arousal spread across sixteen real clips was 0.003. A
 constant. Everything downstream was dead and nothing errored. We only caught it by
 checking the distribution."*
 
+**"That alert clip is labelled UNKNOWN, not DRIVER — so why did you score it?"**
+→ *"Deliberate. We only exclude clips we're confident are the engineer. Unknown stays
+in, because on a twelve-clip session dropping everything we can't name would throw
+away most of the race on a guess. The label tells you our confidence; it doesn't
+silently delete data."* (`speaker.driver_clips()` is literally `!= "engineer"`.)
+
 **"Why not heart-rate / biometrics?"**
 → *"Regulated, invasive, and drivers resist them. Radio already exists in every car
 and every truck. Zero new hardware."*
@@ -218,6 +240,8 @@ and every truck. Zero new hardware."*
 | Live race load fails | Venue WiFi. Menus still populate (cached); only fetching new audio needs the network. Fall back to a pre-loaded session — say *"that one pulls audio live from OpenF1"* |
 | Driver menu says NO DRIVER LIST CACHED | OpenF1 has no driver data for that race. Pick another. |
 | Video stutters | It's 31MB; not fatal, just scroll on |
+| Scroll stops partway down the page | Lenis cached the page height before the charts rendered. **Nudge the browser window edge to resize it by a pixel** — that forces a re-measure and scrolling immediately goes all the way. `End` / `Page Down` also bypass it. |
+| Clip rail empty + charts 404 | You clicked one of the three empty sessions (Jeddah VER, Jeddah RIC, Zandvoort SAI). Pick another. |
 
 ---
 
