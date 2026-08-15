@@ -23,11 +23,73 @@ widens during radio silence and snaps tight when a clip lands. Pure numpy, unit-
 (`backend/tests/test_engine.py`).
 
 Alerts decide, not describe — and ship with their evidence:
-- **Fatigue Drift** — sustained state regime change **and** lap-time degradation.
+- **Fatigue Drift** — early-vs-late decline (Hedges g ≥ 0.8) **and** lap-time loss.
 - **Red Mist** — frustration spike → "cool-down call recommended."
 
 Every score is a z-score against **that driver's own baseline** — Räikkönen's flat is
 normal, Norris's animated is calm.
+
+## What we found in the data
+
+Building this surfaced four problems that only appear when you run real audio through
+real models and check the numbers. They are documented here because the fixes are the
+most interesting engineering in the repo.
+
+**1. The emotion model was running a random head.** `audeering/wav2vec2-...-msp-dim`
+declares a custom `Wav2Vec2ForSpeechClassification`. Loaded through the stock
+`pipeline("audio-classification", ...)`, the trained regression head is silently
+discarded and replaced with a randomly initialised one. Nothing crashes; inference
+returns plausible floats. But arousal spread across 16 real clips was **0.003** — a
+constant — which flat-lined every z-score, changepoint and alert downstream. Declaring
+the real architecture (`pipeline/audeering_model.py`) took the spread to 0.33. A
+`self_check()` guards it, and the cache is versioned so a model change can never serve
+stale scores.
+
+**2. The Kalman covariance diverged.** A constant-velocity model is an *integrated*
+random walk: variance grows as Δt⁵, so an hour of radio silence reported σ≈197 for a
+quantity bounded in [0,1]. Driver arousal is bounded and mean-reverting, so it is now
+an Ornstein-Uhlenbeck process whose uncertainty *saturates* — at that driver's own
+baseline spread, not a global constant.
+
+**3. BOCPD was fed the smoothed posterior.** Changepoint detection was reading the
+Kalman output, i.e. the signal after smoothing had removed the discontinuities it
+exists to find. It was silent on every real session. It now runs on observations.
+
+**4. OpenF1 timestamps are unreliable per session.** Montreal 2024 collapses all 16 of
+a driver's clips into a 21-second window; for Qatar 2023 and Suzuka it is the filenames
+that don't line up instead. Neither source wins everywhere, so a per-session chooser
+scores each candidate on how well clips land inside the session window and picks on
+evidence.
+
+### Measured, not assumed
+
+The design assumed three channels (acoustic, prosodic, linguistic) would corroborate
+each other. On real radio they largely don't:
+
+| pair | correlation (n=32) |
+|---|---|
+| acoustic ↔ speech rate | **−0.33** |
+| acoustic ↔ text negativity | −0.13 |
+| speech rate ↔ text negativity | +0.37 |
+
+That is published rather than buried, and it changed the product: Red Mist used to
+require high speech rate as a third mandatory gate, which vetoed the clearest true
+positive we have — Russell, Qatar 2023, *"Come on, what the hell? Come on."*, scored
+angry 1.00 by emotion2vec+ **and** 0.83 by the text model, delivered slowly at 1.75
+syl/s. Rate now scales confidence instead of gating the alert.
+
+### Alerts are conservative on purpose
+
+Across 44 real clips, exactly **one** alert fires. The most instructive case is one
+that *doesn't*: Russell shows the largest voice decline in the dataset (Hedges
+g=+0.67) but lapped **0.81s faster** over the same window, so lap corroboration
+correctly refuses a fatigue alert a voice-only system would have raised. Both gates
+and both thresholds are shown on screen whether or not they trigger — "no alert" is
+only trustworthy if you can see what was measured.
+
+There is no labelled ground truth for F1 driver stress, so no accuracy figure is
+claimed. That absence is exactly why the design leans on per-driver baselines,
+visible uncertainty and lap corroboration instead.
 
 ## Model stack (Hugging Face)
 
@@ -60,10 +122,10 @@ footage, which is copyrighted and unsafe on a publicly hosted site.
 
 ## Run
 
-`demo-data/` ships committed in this repo — real radio audio + real model output for
-3 verified sessions (Qatar 2023 Ocon, Montreal 2024 Norris, Silverstone 2025 Ocon,
-picked by live-queried OpenF1 clip counts, not guesses). `OFFLINE=1` serves that
-bundle with zero external calls.
+`demo-data/` ships committed in this repo — real radio audio and real model output for
+every session listed in the Garage, all picked by live-queried OpenF1 clip counts
+rather than guessed. `OFFLINE=1` serves that bundle with zero external calls; the
+in-app picker loads any other 2023-2025 race/driver live when online.
 
 ```bash
 docker compose up             # backend :8000 · frontend :3000, OFFLINE=1 by default
