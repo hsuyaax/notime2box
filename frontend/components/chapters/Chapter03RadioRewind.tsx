@@ -17,16 +17,22 @@ import { useReducedMotion } from "@/lib/smoothScroll";
 function RailCard({ c }: { c: ClipScore }) {
   return (
     <div className="cut w-64 sm:w-72 shrink-0 p-4 mr-4 snap-start">
-      <p className="font-mono text-[10px] text-dim">
-        LAP {c.lap ?? "—"}
-        {c.speaker === "engineer" && <span className="text-amber"> · ENGINEER</span>}
-      </p>
-      <p className="display text-sm mt-1" style={{ color: labelColor(c.label) }}>{c.label.toUpperCase()}</p>
+      <p className="font-mono text-[10px] text-dim">LAP {c.lap ?? "—"}</p>
+      {/* Never show a DRIVER-state label on the engineer's voice — that is exactly
+          the contamination the speaker split exists to remove. */}
+      {c.speaker === "engineer" ? (
+        <p className="display text-sm mt-1 text-amber">ENGINEER · NOT SCORED</p>
+      ) : (
+        <p className="display text-sm mt-1" style={{ color: labelColor(c.label) }}>
+          {c.label.toUpperCase()}
+        </p>
+      )}
       <div className="mt-3 h-10 flex items-end gap-0.5">
         {Array.from({ length: 40 }, (_, i) => (
           <div key={i} className="flex-1" style={{
             height: `${15 + 70 * Math.abs(Math.sin(i * 1.9 + c.arousal * 9)) * c.arousal}%`,
-            background: labelColor(c.label), opacity: 0.7,
+            background: c.speaker === "engineer" ? "var(--dim)" : labelColor(c.label),
+            opacity: c.speaker === "engineer" ? 0.45 : 0.7,
           }} />
         ))}
       </div>

@@ -31,9 +31,12 @@ export default function YouTubeEmbed({ id, title }: { id: string; title: string 
       <img
         src={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
         alt={title}
-        className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"
+        // full-colour stock breaks the two-colour discipline the rest of the site
+        // holds to; desaturate to sit in the palette and lift on hover
+        className="w-full h-full object-cover grayscale contrast-125 opacity-40
+                   group-hover:grayscale-0 group-hover:opacity-75 transition-all duration-300"
       />
-      <div className="absolute inset-0 bg-bg/40 flex items-center justify-center">
+      <div className="absolute inset-0 bg-bg/55 group-hover:bg-bg/35 transition-colors flex items-center justify-center">
         <span className="w-16 h-16 rounded-full border-2 border-race-white flex items-center justify-center">
           <span className="w-0 h-0 border-y-8 border-y-transparent border-l-[14px] border-l-race-white ml-1" />
         </span>

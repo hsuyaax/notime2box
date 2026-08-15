@@ -59,9 +59,13 @@ export default function ClipPanel({ clip, steiner }: { clip: ClipScore; steiner:
           LAP {clip.lap ?? "—"} · {fmtT(clip.t_session_s)} · ASR {clip.asr_model.toUpperCase()} ·{" "}
           {(clip.asr_conf * 100).toFixed(0)}%
         </p>
-        <span className="display text-sm" style={{ color: labelColor(clip.label) }}>
-          {label} · z {clip.arousal_z > 0 ? "+" : ""}{clip.arousal_z.toFixed(1)}
-        </span>
+        {clip.speaker === "engineer" ? (
+          <span className="display text-sm text-amber">ENGINEER · NOT SCORED</span>
+        ) : (
+          <span className="display text-sm" style={{ color: labelColor(clip.label) }}>
+            {label} · z {clip.arousal_z > 0 ? "+" : ""}{clip.arousal_z.toFixed(1)}
+          </span>
+        )}
       </div>
 
       {clip.audio_url ? (
@@ -90,7 +94,14 @@ export default function ClipPanel({ clip, steiner }: { clip: ClipScore; steiner:
           : clip.transcript || <span className="text-dim italic">no transcript</span>}
       </p>
 
-      <div className="grid grid-cols-3 gap-x-6 gap-y-1 mt-4">
+      {clip.speaker === "engineer" && (
+        <p className="font-mono text-[10px] text-amber mt-3">
+          Race engineer speaking — team radio carries both sides. Excluded from this
+          driver&apos;s baseline and state estimate.
+        </p>
+      )}
+
+      <div className={`grid grid-cols-3 gap-x-6 gap-y-1 mt-4 ${clip.speaker === "engineer" ? "opacity-30" : ""}`}>
         <Bar name="acoustic" v={clip.arousal} />
         <Bar name="prosody" v={clip.prosody.rate_sps / 8} />
         <Bar name="text" v={Object.values(clip.text_emotion).length
