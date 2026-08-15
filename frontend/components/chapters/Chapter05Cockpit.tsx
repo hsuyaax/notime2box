@@ -73,10 +73,17 @@ export default function Chapter05Cockpit() {
     const fd = new FormData();
     fd.append("file", file);
     try {
-      const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd });
+      const r = await fetch(`${API}/api/upload`, {
+        method: "POST", body: fd, signal: AbortSignal.timeout(45000),
+      });
+      if (!r.ok) throw new Error(String(r.status));
       setResult(await r.json());
-    } catch {
-      setErr("scoring failed — is the backend up?");
+    } catch (e) {
+      setErr(
+        (e as Error)?.name === "TimeoutError"
+          ? "scoring timed out — models may still be loading, try again"
+          : "scoring failed — is the backend up?"
+      );
     }
     setPhase("idle");
   };
@@ -96,12 +103,21 @@ export default function Chapter05Cockpit() {
         const fd = new FormData();
         fd.append("file", new Blob(chunks, { type: rec.mimeType }), "take.webm");
         try {
-          const r = await fetch(`${API}/api/mic/score?baseline=${take === 1 ? 1 : 0}`, { method: "POST", body: fd });
+          // hard ceiling: a stuck request must surface as an error, never as a
+          // button that says SCORING forever
+          const r = await fetch(`${API}/api/mic/score?baseline=${take === 1 ? 1 : 0}`, {
+            method: "POST", body: fd, signal: AbortSignal.timeout(45000),
+          });
+          if (!r.ok) throw new Error(String(r.status));
           const data = await r.json();
           setResult(data);
           if (take === 1 && data.baseline_captured) setTake(2);
-        } catch {
-          setErr("scoring failed — is the backend up?");
+        } catch (e) {
+          setErr(
+            (e as Error)?.name === "TimeoutError"
+              ? "scoring timed out — models may still be loading, try again"
+              : "scoring failed — is the backend up?"
+          );
         }
         setPhase("idle");
       };

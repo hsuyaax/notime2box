@@ -16,6 +16,12 @@ ASR_CONF_GATE = float(os.getenv("ASR_CONF_GATE", "0.55"))
 EWMA_ALPHA = float(os.getenv("EWMA_ALPHA", "0.3"))
 BOCPD_HAZARD = float(os.getenv("BOCPD_HAZARD", "8"))
 OFFLINE = os.getenv("OFFLINE", "0") == "1"
+if OFFLINE:
+    # Load models from the local HF cache only. Without this, transformers and
+    # huggingface_hub still make metadata calls on every load — which is slow on a
+    # good network and hangs on a dead one, exactly when a demo can least afford it.
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 DEMO_PROFILE = os.getenv("DEMO_PROFILE", "0") == "1"
 
 # Alert thresholds (Part C4); DEMO_PROFILE relaxes red-mist for the live mic bit.

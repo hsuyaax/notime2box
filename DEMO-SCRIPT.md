@@ -18,6 +18,16 @@ cd notime2box\frontend
 npm run build ; npm start
 ```
 
+**Wait for the backend to finish loading models before you open the browser.** It
+warms all six at startup, which takes a minute or two. Confirm with:
+
+```bash
+curl http://localhost:8000/health
+# {"ready": true, "mic_scoring": "real models"}
+```
+
+If `ready` is false the mic will be slow on its first use. Wait for true.
+
 Then, in the browser you'll present from:
 1. Open `http://localhost:3000`, **hard-refresh (Ctrl+Shift+R)**.
 2. Scroll the whole page once, top to bottom. This warms every GSAP pin and
@@ -203,6 +213,7 @@ and every truck. Zero new hardware."*
 | Page looks stale / old layout | Ctrl+Shift+R |
 | Charts empty | You didn't pick a session — go to Garage |
 | Mic does nothing | Permission wasn't granted; reload, click REC, accept |
+| Stuck on SCORING | Models still loading. Check `curl localhost:8000/health` for `ready: true`. The request now times out after 45s with a message rather than hanging. |
 | Backend 404s | Restart uvicorn; `OFFLINE=1` |
 | Live race load fails | Venue WiFi. Menus still populate (cached); only fetching new audio needs the network. Fall back to a pre-loaded session — say *"that one pulls audio live from OpenF1"* |
 | Driver menu says NO DRIVER LIST CACHED | OpenF1 has no driver data for that race. Pick another. |
