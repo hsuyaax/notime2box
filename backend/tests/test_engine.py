@@ -5,7 +5,7 @@ import pytest
 from backend.app.engine.kalman import Kalman, BayesEngine, clip_measurement
 from backend.app.engine.bocpd import BOCPD
 from backend.app.engine.naive import NaiveEngine
-from backend.app.engine.alerts import detect_alerts
+from backend.app.engine.alerts import detect_alerts, _red_mist
 
 
 def make_clip(t, arousal, valence=0.5, z=0.0, lap=None, **kw):
@@ -122,3 +122,28 @@ def test_bocpd_sees_jump_in_observations_not_smoothed_posterior():
     assert max(p.p_change for p in tr_jump) > max(p.p_change for p in tr_flat), \
         "a real step change must score higher than a flat session"
     assert len({p.regime_id for p in tr_jump}) > 1, "step change should open a new regime"
+
+
+def test_red_mist_fires_on_slow_deliberate_anger():
+    """Anger is not always fast speech.
+
+    Locks in a real case: Russell, Qatar 2023 lap 4, "Come on, what the hell?
+    Come on." — emotion2vec+ scored angry 1.00 and the text model 0.83, but the
+    delivery is slow and clipped (1.75 syl/s). A mandatory speech-rate gate vetoed
+    the clearest true positive in the whole dataset, which is also what the measured
+    arousal/rate correlation (-0.33) predicts. Rate now scales confidence instead.
+    """
+    slow_angry = make_clip(240.0, 0.80, valence=0.2, z=1.56, lap=4,
+                           cat_emotion={"angry": 1.0},
+                           prosody={"rate_sps": 1.75, "pause_ratio": 0.3, "f0_var": 400},
+                           text_emotion={"anger": 0.83})
+    fired = [a for a in _red_mist([slow_angry]) if a.type == "red_mist"]
+    assert fired, "slow, deliberate anger must still raise Red Mist"
+    assert fired[0].evidence["anger_acoustic"] == 1.0
+
+    # ...and a high-arousal POSITIVE clip must not (excited != angry)
+    happy = make_clip(300.0, 0.85, valence=0.9, z=2.2, lap=10,
+                      cat_emotion={"happy": 0.9},
+                      prosody={"rate_sps": 5.5, "pause_ratio": 0.1, "f0_var": 900},
+                      text_emotion={"joy": 0.8})
+    assert not _red_mist([happy]), "celebration must never trigger a cool-down call"

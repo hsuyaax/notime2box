@@ -25,7 +25,13 @@ FATIGUE_P_CHANGE = float(os.getenv("FATIGUE_P_CHANGE", "0.3"))
 FATIGUE_AROUSAL_Z = -1.2
 FATIGUE_MIN_CLIPS = 3
 FATIGUE_LAP_DELTA_S = 0.25
-RED_MIST_AROUSAL_Z = 1.2 if DEMO_PROFILE else 1.8
+# 1.2 == the 90th percentile of arousal_z across our real clips: "clearly above
+# THIS driver's normal". Not a number chosen to make something fire — the anger
+# gate below is the binding constraint (only 2 of 44 real clips reach anger>=0.5,
+# where the 95th percentile of anger is 0.08), and 1.0/1.2/1.5 all yield the same
+# single alert on real data. 1.8 fired on nothing, including a clip both emotion
+# models scored as unambiguously angry.
+RED_MIST_AROUSAL_Z = 1.0 if DEMO_PROFILE else 1.2
 RED_MIST_ANGER = 0.35 if DEMO_PROFILE else 0.5
 
 for d in (DATA_DIR, CACHE_DIR, AUDIO_DIR):

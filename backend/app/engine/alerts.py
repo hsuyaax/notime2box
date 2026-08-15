@@ -62,20 +62,42 @@ def _fatigue_drift(clips, trace, laps) -> list[Alert]:
 
 
 def _red_mist(clips) -> list[Alert]:
+    """Frustration spike. Two required conditions, plus corroboration that raises
+    confidence rather than gating the alert.
+
+    Speech rate used to be a third mandatory gate ("angry people talk fast"). Real
+    radio says otherwise: measured correlation between acoustic arousal and speech
+    rate is NEGATIVE (-0.33, n=32), and the clearest angry clip we have — Russell,
+    Qatar 2023, "Come on, what the hell? Come on.", scored angry 1.00 by
+    emotion2vec+ AND 0.83 by the text model — is slow and clipped at 1.75 syl/s.
+    Requiring high rate demanded two things that don't co-occur, and vetoed the
+    single most obvious true positive in the dataset.
+
+    So: elevated arousal against the driver's own baseline, plus explicit anger
+    evidence from at least one model. Rate and cross-model agreement then scale
+    confidence, which is what a pit wall actually needs to triage.
+    """
     out = []
     for c in clips:
-        angry = c.get("cat_emotion", {}).get("angry", 0) >= 0.4 \
-            or c.get("text_emotion", {}).get("anger", 0) >= config.RED_MIST_ANGER
-        rate_up = c.get("prosody", {}).get("rate_z", 0) > 0 or c.get("prosody", {}).get("rate_sps", 0) > 4.5
-        if c["arousal_z"] >= config.RED_MIST_AROUSAL_Z and angry and rate_up:
-            out.append(Alert(
-                type="red_mist",
-                t_start=c["t_session_s"],
-                laps=[c["lap"]] if c.get("lap") else [],
-                evidence={"arousal_z": round(c["arousal_z"], 2),
-                          "anger": round(max(c.get("cat_emotion", {}).get("angry", 0),
-                                             c.get("text_emotion", {}).get("anger", 0)), 2),
-                          "rate_sps": round(c.get("prosody", {}).get("rate_sps", 0), 2)},
-                confidence=round(min(0.95, c.get("confidence", 0.5) + 0.2), 2),
-                message="Frustration spike — cool-down call recommended"))
+        cat_ang = c.get("cat_emotion", {}).get("angry", 0)
+        txt_ang = c.get("text_emotion", {}).get("anger", 0)
+        anger = max(cat_ang, txt_ang)
+        if c["arousal_z"] < config.RED_MIST_AROUSAL_Z or anger < config.RED_MIST_ANGER:
+            continue
+
+        rate = c.get("prosody", {}).get("rate_sps", 0)
+        both_models = cat_ang >= 0.4 and txt_ang >= config.RED_MIST_ANGER
+        conf = 0.55 + 0.20 * both_models + 0.10 * (rate > 4.5) \
+            + 0.10 * (c["arousal_z"] >= 2.0)
+
+        out.append(Alert(
+            type="red_mist",
+            t_start=c["t_session_s"],
+            laps=[c["lap"]] if c.get("lap") else [],
+            evidence={"arousal_z": round(c["arousal_z"], 2),
+                      "anger_acoustic": round(cat_ang, 2),
+                      "anger_text": round(txt_ang, 2),
+                      "rate_sps": round(rate, 2)},
+            confidence=round(min(conf, 0.95), 2),
+            message="Frustration spike — cool-down call recommended"))
     return out
