@@ -10,3 +10,4 @@ demo-data/cache/
 .env
 .env.local
 my-project/
+.gstack/

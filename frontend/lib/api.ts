@@ -88,7 +88,9 @@ export const labelColor = (label: string) =>
   : label === "uncertain" ? "var(--dim)"
   : "var(--green)";
 
-export const fmtT = (s: number) => {
+export const fmtT = (s: number): string => {
+  // pre-session grid radio has negative t_session_s (before lights out) — real data
+  if (s < 0) return `-${fmtT(-s)}`;
   const m = Math.floor(s / 60);
   return `${m}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 };
